@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "130822313110",
+    "firebase_url": "https://travelmanager-701b9.firebaseio.com",
+    "project_id": "travelmanager-701b9",
+    "storage_bucket": "travelmanager-701b9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:130822313110:android:2484300b08c12ac1",
+        "android_client_info": {
+          "package_name": "com.uniquemiban.travelmanager"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "130822313110-9n1ccdosrn2i65jm7s965mtip45hd5vi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.uniquemiban.travelmanager",
+            "certificate_hash": "C31B6EE0209C4515DF047FD62DE0AEACE1E96A96"
+          }
+        },
+        {
+          "client_id": "130822313110-ouvkn8turis14r7j606gkul1cb0dv5ce.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAdxU1PLJYd8BVZTEss3B1K-B8-vy_Iijg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "130822313110-ouvkn8turis14r7j606gkul1cb0dv5ce.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

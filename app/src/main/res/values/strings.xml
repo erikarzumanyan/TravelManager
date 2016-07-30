@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">TravelAgent</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+
+    <!--Navigation View Menu Items-->
+    <string name="nav_sightseeing">Sightseeing</string>
+    <string name="nav_sleeping">Sleeping</string>
+    <string name="nav_eating">Eating</string>
+    <string name="nav_tours">Tours</string>
+    <string name="nav_map">Map</string>
+
+    <!--Navigation View Header Strings-->
+    <string name="nav_header_user_name">Your Name</string>
+    <string name="nav_header_email">youremail@gmail.com</string>
+
+</resources>

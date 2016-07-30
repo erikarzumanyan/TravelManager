@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_sightseeing"
+            android:icon="@drawable/ic_sightseeing_24dp"
+            android:title="@string/nav_sightseeing" />
+        <item
+            android:id="@+id/nav_sleeping"
+            android:icon="@drawable/ic_sleeping_24dp"
+            android:title="@string/nav_sleeping" />
+        <item
+            android:id="@+id/nav_eating"
+            android:icon="@drawable/ic_eating_24dp"
+            android:title="@string/nav_eating" />
+        <item
+            android:id="@+id/nav_tours"
+            android:icon="@drawable/ic_tours_24dp"
+            android:title="@string/nav_tours" />
+        <item
+            android:id="@+id/nav_map"
+            android:icon="@drawable/ic_map_24dp"
+            android:title="@string/nav_map" />
+    </group>
+
+    <item android:title="Communicate">
+        <menu>
+            <item
+                android:id="@+id/nav_share"
+                android:icon="@drawable/ic_menu_share"
+                android:title="Share" />
+            <item
+                android:id="@+id/nav_send"
+                android:icon="@drawable/ic_menu_send"
+                android:title="Send" />
+        </menu>
+    </item>
+
+</menu>
