@@ -7,26 +7,11 @@ public class Sight extends RealmObject {
     private String mId;
     private String mName;
     private String mPhotoUrl;
-
-    protected String getAbout() {
-        return mAbout;
-    }
-
-    protected void setAbout(String pAbout) {
-        mAbout = pAbout;
-    }
-
-    protected String getPhotoUrl() {
-        return mPhotoUrl;
-    }
-
-    protected void setPhotoUrl(String pPhotoUrl) {
-        mPhotoUrl = pPhotoUrl;
-    }
-
     private String mAbout;
+
     private double mLongitude;
     private double mLatitude;
+
 
     public Sight(){
 
@@ -36,39 +21,47 @@ public class Sight extends RealmObject {
         return mId;
     }
 
-    public void setId(String mId){
-        this.mId = mId;
+    public void setId(String pId){
+        this.mId = pId;
     }
 
     public String getName() {
         return mName;
     }
 
-    public void setName(String mName) {
-        this.mName = mName;
+    public void setName(String pName) {
+        this.mName = pName;
     }
 
-    public String getUrl() {
+    public String getPhotoUrl() {
         return mPhotoUrl;
     }
 
-    public void setUrl(String mPhotoUrl) {
-        this.mPhotoUrl = mPhotoUrl;
+    public void setPhotoUrl(String pPhotoUrl) {
+        this.mPhotoUrl = pPhotoUrl;
+    }
+
+    protected String getAbout() {
+        return mAbout;
+    }
+
+    protected void setAbout(String pAbout) {
+        this.mAbout = pAbout;
     }
 
     public double getLatitude() {
         return mLatitude;
     }
 
-    public void setLatitude(double mLatitude) {
-        this.mLatitude = mLatitude;
+    public void setLatitude(double pLatitude) {
+        this.mLatitude = pLatitude;
     }
 
     public double getLongitude() {
         return mLongitude;
     }
 
-    public void setLongitude(double mLongitude) {
-        this.mLongitude = mLongitude;
+    public void setLongitude(double pLongitude) {
+        this.mLongitude = pLongitude;
     }
 }
