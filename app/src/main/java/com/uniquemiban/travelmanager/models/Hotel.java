@@ -6,7 +6,7 @@ import io.realm.annotations.PrimaryKey;
 public class Hotel extends RealmObject{
 
     @PrimaryKey
-    private String mId;
+    private long mId;
 
     private String mName;
     private String mPhotoUrl;
@@ -25,11 +25,11 @@ public class Hotel extends RealmObject{
         this.mAbout = pAbout;
     }
 
-    public String getId() {
+    public long getId() {
         return mId;
     }
 
-    public void setId(String pId) {
+    public void setId(long pId) {
         this.mId = pId;
     }
 

@@ -6,8 +6,8 @@ import io.realm.annotations.PrimaryKey;
 public class Sight extends RealmObject {
 
     @PrimaryKey
-    private String mId;
-    
+    private long mId;
+
     private String mName;
     private String mPhotoUrl;
     private String mAbout;
@@ -20,11 +20,11 @@ public class Sight extends RealmObject {
 
     }
 
-    public String getId() {
+    public long getId() {
         return mId;
     }
 
-    public void setId(String pId){
+    public void setId(long pId){
         this.mId = pId;
     }
 
