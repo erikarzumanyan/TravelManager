@@ -1,10 +1,13 @@
 package com.uniquemiban.travelmanager.models;
 
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 public class Hotel extends RealmObject{
 
+    @PrimaryKey
     private String mId;
+
     private String mName;
     private String mPhotoUrl;
     private String mAbout;
