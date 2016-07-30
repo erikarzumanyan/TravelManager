@@ -8,6 +8,23 @@ public class Sight extends RealmObject {
     private String mName;
     private String mPhotoUrl;
 
+    protected String getAbout() {
+        return mAbout;
+    }
+
+    protected void setAbout(String pAbout) {
+        mAbout = pAbout;
+    }
+
+    protected String getPhotoUrl() {
+        return mPhotoUrl;
+    }
+
+    protected void setPhotoUrl(String pPhotoUrl) {
+        mPhotoUrl = pPhotoUrl;
+    }
+
+    private String mAbout;
     private double mLongitude;
     private double mLatitude;
 
