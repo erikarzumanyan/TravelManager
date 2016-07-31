@@ -1,10 +1,8 @@
 package com.uniquemiban.travelmanager.models;
 
-import io.realm.RealmModel;
-import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
-public abstract class AbstractPlace implements RealmModel{
+public abstract class AbstractPlace{
     @PrimaryKey
     private long mId;
 
