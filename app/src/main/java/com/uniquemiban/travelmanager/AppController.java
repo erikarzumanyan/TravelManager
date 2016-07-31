@@ -2,9 +2,6 @@ package com.uniquemiban.travelmanager;
 
 import android.app.Application;
 
-import com.uniquemiban.travelmanager.models.Hotel;
-import com.uniquemiban.travelmanager.models.Sight;
-
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 
