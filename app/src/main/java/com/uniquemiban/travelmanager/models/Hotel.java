@@ -2,63 +2,63 @@ package com.uniquemiban.travelmanager.models;
 
 import io.realm.RealmObject;
 
-public class Hotel extends RealmObject{
+public class Hotel extends RealmObject {
+    private String id;
+    private String name;
+    private String photoUrl;
+    private String about;
 
-    private String mId;
-    private String mName;
-    private String mPhotoUrl;
-    private String mAbout;
+    private double Longitude;
+    private double Latitude;
 
-    private double mLongitude;
-    private double mLatitude;
-
-    public Hotel(){}
+    public Hotel() {
+    }
 
     public String getAbout() {
-        return mAbout;
+        return about;
     }
 
     public void setAbout(String pAbout) {
-        this.mAbout = pAbout;
+        this.about = pAbout;
     }
 
     public String getId() {
-        return mId;
+        return id;
     }
 
     public void setId(String pId) {
-        this.mId = pId;
+        this.id = pId;
     }
 
     public String getName() {
-        return mName;
+        return name;
     }
 
     public void setName(String pName) {
-        this.mName = pName;
+        this.name = pName;
     }
 
     public String getPhotoUrl() {
-        return mPhotoUrl;
+        return photoUrl;
     }
 
     public void setPhotoUrl(String pPhotoUrl) {
-        this.mPhotoUrl = pPhotoUrl;
+        this.photoUrl = pPhotoUrl;
     }
 
     public double getLatitude() {
-        return mLatitude;
+        return Latitude;
     }
 
     public void setLatitude(double pLatitude) {
-        this.mLatitude = pLatitude;
+        this.Latitude = pLatitude;
     }
 
     public double getLongitude() {
-        return mLongitude;
+        return Longitude;
     }
 
     public void setLongitude(double pLongitude) {
-        this.mLongitude = pLongitude;
+        this.Longitude = pLongitude;
     }
 }
