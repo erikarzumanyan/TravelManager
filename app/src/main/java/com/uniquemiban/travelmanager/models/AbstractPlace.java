@@ -1,10 +1,10 @@
 package com.uniquemiban.travelmanager.models;
 
+import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
-public class Hotel extends RealmObject{
-
+public abstract class AbstractPlace implements RealmModel{
     @PrimaryKey
     private long mId;
 
@@ -15,7 +15,7 @@ public class Hotel extends RealmObject{
     private double mLongitude;
     private double mLatitude;
 
-    public Hotel(){}
+    public AbstractPlace(){}
 
     public String getAbout() {
         return mAbout;
@@ -33,22 +33,6 @@ public class Hotel extends RealmObject{
         this.mId = pId;
     }
 
-    public String getName() {
-        return mName;
-    }
-
-    public void setName(String pName) {
-        this.mName = pName;
-    }
-
-    public String getPhotoUrl() {
-        return mPhotoUrl;
-    }
-
-    public void setPhotoUrl(String pPhotoUrl) {
-        this.mPhotoUrl = pPhotoUrl;
-    }
-
     public double getLatitude() {
         return mLatitude;
     }
@@ -63,5 +47,21 @@ public class Hotel extends RealmObject{
 
     public void setLongitude(double pLongitude) {
         this.mLongitude = pLongitude;
+    }
+
+    public String getName() {
+        return mName;
+    }
+
+    public void setName(String pName) {
+        this.mName = pName;
+    }
+
+    public String getPhotoUrl() {
+        return mPhotoUrl;
+    }
+
+    public void setPhotoUrl(String pPhotoUrl) {
+        this.mPhotoUrl = pPhotoUrl;
     }
 }

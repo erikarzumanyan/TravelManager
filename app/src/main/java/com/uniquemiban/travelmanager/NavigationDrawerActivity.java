@@ -12,8 +12,13 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.firebase.database.FirebaseDatabase;
+import com.uniquemiban.travelmanager.models.Hotel;
+
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
 
 public class NavigationDrawerActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -42,6 +47,19 @@ public class NavigationDrawerActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(this).build();
+        Realm.setDefaultConfiguration(realmConfig);
+        Realm realm = Realm.getDefaultInstance();
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                Hotel hotel = realm.createObject(Hotel.class);
+                hotel.setName("aa");
+            }
+        });
+
+        Toast.makeText(this, realm.where(Hotel.class).findAll().get(0).getName(), Toast.LENGTH_LONG).show();
     }
 
     @Override

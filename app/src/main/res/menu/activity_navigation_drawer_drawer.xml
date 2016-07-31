@@ -15,6 +15,14 @@
             android:icon="@drawable/ic_eating_24dp"
             android:title="@string/nav_eating" />
         <item
+            android:id="@+id/nav_amusement"
+            android:icon="@drawable/ic_amusement_24dp"
+            android:title="@string/nav_amusement" />
+        <item
+            android:id="@+id/nav_transtport"
+            android:icon="@drawable/ic_transport_24dp"
+            android:title="@string/nav_transport" />
+        <item
             android:id="@+id/nav_tours"
             android:icon="@drawable/ic_tours_24dp"
             android:title="@string/nav_tours" />

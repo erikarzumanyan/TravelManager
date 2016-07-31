@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TravelAgent</string>
+    <string name="app_name">Travel Manager</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -11,6 +11,8 @@
     <string name="nav_sleeping">Sleeping</string>
     <string name="nav_eating">Eating</string>
     <string name="nav_tours">Tours</string>
+    <string name="nav_amusement">Amusement</string>
+    <string name="nav_transport">Transport</string>
     <string name="nav_map">Map</string>
 
     <!--Navigation View Header Strings-->
