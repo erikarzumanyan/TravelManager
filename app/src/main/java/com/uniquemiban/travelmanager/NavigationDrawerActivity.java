@@ -16,7 +16,6 @@ public class NavigationDrawerActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
 
-    private static final int CONTENT_VIEW_ID = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
