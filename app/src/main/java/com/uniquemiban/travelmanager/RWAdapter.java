@@ -1,4 +1,4 @@
-package com.uniquemiban.travelmanager.models;
+package com.uniquemiban.travelmanager;
 
 /**
  * Created by narek on 7/28/16.
@@ -13,7 +13,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 
-import com.uniquemiban.travelmanager.R;
+import com.uniquemiban.travelmanager.models.Sight;
 
 import java.util.List;
 
