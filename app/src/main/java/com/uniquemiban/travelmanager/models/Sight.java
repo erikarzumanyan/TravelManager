@@ -20,6 +20,15 @@ public class Sight extends RealmObject {
 
     }
 
+    public Sight(String mAbout, long mId, double mLatitude, double mLongitude, String mName, String mPhotoUrl) {
+        this.mAbout = mAbout;
+        this.mId = mId;
+        this.mLatitude = mLatitude;
+        this.mLongitude = mLongitude;
+        this.mName = mName;
+        this.mPhotoUrl = mPhotoUrl;
+    }
+
     public long getId() {
         return mId;
     }
@@ -44,11 +53,11 @@ public class Sight extends RealmObject {
         this.mPhotoUrl = pPhotoUrl;
     }
 
-    protected String getAbout() {
+    public String getAbout() {
         return mAbout;
     }
 
-    protected void setAbout(String pAbout) {
+    public void setAbout(String pAbout) {
         this.mAbout = pAbout;
     }
 

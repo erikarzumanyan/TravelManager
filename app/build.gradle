@@ -36,6 +36,9 @@ dependencies {
     /* For Google Play Services */
     compile 'com.google.android.gms:play-services-safetynet:9.2.0'
     compile 'com.google.android.gms:play-services-auth:9.2.0'
+
+    /* Picasso */
+    compile 'com.squareup.picasso:picasso:2.5.2'
 }
 
 apply plugin: 'com.google.gms.google-services'
