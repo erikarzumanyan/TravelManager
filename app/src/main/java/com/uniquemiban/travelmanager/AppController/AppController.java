@@ -1,4 +1,4 @@
-package com.uniquemiban.travelmanager;
+package com.uniquemiban.travelmanager.AppController;
 
 import android.app.Application;
 
