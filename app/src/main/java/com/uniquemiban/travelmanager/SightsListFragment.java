@@ -10,7 +10,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 import com.uniquemiban.travelmanager.models.Sight;
 
@@ -18,6 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.realm.Realm;
+import io.realm.RealmChangeListener;
+import io.realm.RealmResults;
 
 public class SightsListFragment extends Fragment{
 
@@ -25,19 +33,84 @@ public class SightsListFragment extends Fragment{
     private RecyclerView mSightsRecyclerView;
     private SightAdapter mAdapter;
 
+    private DatabaseReference mRef;
+    private Realm mRealm;
+
+    private ChildEventListener mChildEventListener;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mSightsList = new ArrayList<>();
+        mRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_SIGHTS).getRef();
+        mRealm = Realm.getDefaultInstance();
 
-        for(int i = 0; i < 10; ++i){
-            Sight sight = new Sight();
-            sight.setName("sight " + i);
-            sight.setAbout("skfjhdskjhsdkj");
-            sight.setPhotoUrl("http://www.panorama.am/news_images/513/1538336_3/f56d73308a93ad_56d73308a93ea.thumb.jpg");
+        RealmResults<Sight> results = mRealm.where(Sight.class).findAll();
+        mSightsList = new ArrayList<>();
+        for(Sight sight: results){
             mSightsList.add(sight);
         }
+
+        mChildEventListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot pDataSnapshot, String pS) {
+                final Sight s = pDataSnapshot.getValue(Sight.class);
+
+                mRealm = Realm.getDefaultInstance();
+
+                mRealm.executeTransactionAsync(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        Realm r = Realm.getDefaultInstance();
+                        realm.copyToRealmOrUpdate(s);
+                        realm.close();
+                    }
+                });
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot pDataSnapshot, String pS) {
+                final Sight s = pDataSnapshot.getValue(Sight.class);
+
+                mRealm = Realm.getDefaultInstance();
+
+                mRealm.executeTransactionAsync(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        Realm r = Realm.getDefaultInstance();
+                        realm.copyToRealmOrUpdate(s);
+                        realm.close();
+                    }
+                });
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot pDataSnapshot) {
+                final Sight s = pDataSnapshot.getValue(Sight.class);
+
+                mRealm = Realm.getDefaultInstance();
+
+                mRealm.executeTransactionAsync(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        Realm r = Realm.getDefaultInstance();
+                        Sight sight = r.where(Sight.class).equalTo("mId", s.getId()).findFirst();
+                        sight.deleteFromRealm();
+                        realm.close();
+                    }
+                });
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot pDataSnapshot, String pS) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError pDatabaseError) {
+
+            }
+        };
     }
 
     @Nullable
@@ -52,6 +125,37 @@ public class SightsListFragment extends Fragment{
         mSightsRecyclerView.setAdapter(mAdapter);
 
         return view;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        mRealm.addChangeListener(new RealmChangeListener<Realm>() {
+            @Override
+            public void onChange(Realm element) {
+                updateUI();
+            }
+        });
+
+        mRef.addChildEventListener(mChildEventListener);
+    }
+
+    private void updateUI() {
+        RealmResults<Sight> results = mRealm.where(Sight.class).findAll();
+        mSightsList.clear();
+        for(Sight sight: results){
+            mSightsList.add(sight);
+        }
+        mAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        mRealm.removeAllChangeListeners();
+        mRealm.close();
+        mRef.removeEventListener(mChildEventListener);
     }
 
     private class SightHolder extends RecyclerView.ViewHolder{
