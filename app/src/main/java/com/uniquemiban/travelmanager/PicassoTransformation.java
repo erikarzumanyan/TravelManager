@@ -22,6 +22,7 @@ public class PicassoTransformation implements Transformation {
         mWidth = pWidth;
     }
 
+    
     @Override public Bitmap transform(Bitmap source) {
         double d = (double)source.getWidth()/source.getHeight();
         Bitmap result = Bitmap.createScaledBitmap(source, mWidth, (int)(mWidth/d), true);
