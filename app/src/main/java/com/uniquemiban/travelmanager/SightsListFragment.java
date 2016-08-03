@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
@@ -67,8 +68,8 @@ public class SightsListFragment extends Fragment{
                     @Override
                     public void execute(Realm realm) {
                         Realm r = Realm.getDefaultInstance();
-                        realm.copyToRealmOrUpdate(s);
-                        realm.close();
+                        r.copyToRealmOrUpdate(s);
+                        r.close();
                     }
                 });
             }
@@ -83,8 +84,8 @@ public class SightsListFragment extends Fragment{
                     @Override
                     public void execute(Realm realm) {
                         Realm r = Realm.getDefaultInstance();
-                        realm.copyToRealmOrUpdate(s);
-                        realm.close();
+                        r.copyToRealmOrUpdate(s);
+                        r.close();
                     }
                 });
             }
@@ -124,7 +125,9 @@ public class SightsListFragment extends Fragment{
         View view = inflater.inflate(R.layout.fragment_sights_list, container, false);
 
         mSightsRecyclerView = (RecyclerView)view.findViewById(R.id.fragment_sights_list_recycler_view);
-        mSightsRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL));
+        mSightsRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+        //mSightsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
+        //SightsRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2));
 
         mPicassoTransformation = new PicassoTransformation(500);
 
@@ -135,7 +138,7 @@ public class SightsListFragment extends Fragment{
                 final int height = mSightsRecyclerView.getHeight();
                 final int max = Math.max(width, height);
                 if(width != 0)
-                    mPicassoTransformation.setWidth(max/3);
+                    mPicassoTransformation.setWidth(max/2);
             }
         });
 
@@ -189,14 +192,14 @@ public class SightsListFragment extends Fragment{
 
             mPhotoImageView = (ImageView)itemView.findViewById(R.id.image_view_sight);
             mNameTextView = (TextView)itemView.findViewById(R.id.text_view_name);
-            mAboutTextView = (TextView)itemView.findViewById(R.id.text_view_about);
+         //   mAboutTextView = (TextView)itemView.findViewById(R.id.text_view_about);
         }
 
         public void bindSight(Sight pSight){
             mSight = pSight;
 
             mNameTextView.setText(mSight.getName());
-            mAboutTextView.setText(mSight.getAbout());
+//            mAboutTextView.setText(mSight.getAbout());
 
             Picasso.with(getActivity())
                     .load(mSight.getPhotoUrl())
