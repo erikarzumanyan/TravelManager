@@ -10,8 +10,7 @@ public class AppController extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-
-        RealmConfiguration realmConfig = new RealmConfiguration.Builder(this).build();
-        Realm.setDefaultConfiguration(realmConfig);
+        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(this).build();
+        Realm.setDefaultConfiguration(realmConfiguration);
     }
 }

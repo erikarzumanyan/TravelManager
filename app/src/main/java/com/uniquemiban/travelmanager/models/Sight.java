@@ -6,7 +6,7 @@ import io.realm.annotations.PrimaryKey;
 public class Sight extends RealmObject {
 
     @PrimaryKey
-    private long mId;
+    private String mId;
 
     private String mName;
     private String mPhotoUrl;
@@ -20,7 +20,7 @@ public class Sight extends RealmObject {
 
     }
 
-    public Sight(String mAbout, long mId, double mLatitude, double mLongitude, String mName, String mPhotoUrl) {
+    public Sight(String mAbout, String mId, double mLatitude, double mLongitude, String mName, String mPhotoUrl) {
         this.mAbout = mAbout;
         this.mId = mId;
         this.mLatitude = mLatitude;
@@ -29,11 +29,11 @@ public class Sight extends RealmObject {
         this.mPhotoUrl = mPhotoUrl;
     }
 
-    public long getId() {
+    public String getId() {
         return mId;
     }
 
-    public void setId(long pId){
+    public void setId(String pId){
         this.mId = pId;
     }
 
