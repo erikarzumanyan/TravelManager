@@ -21,6 +21,7 @@ import com.squareup.picasso.Picasso;
 import com.uniquemiban.travelmanager.models.Sight;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import io.realm.Realm;
