@@ -5,9 +5,11 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,6 +40,8 @@ public class SightsListFragment extends Fragment{
     private Realm mRealm;
 
     private ChildEventListener mChildEventListener;
+
+    private PicassoTransformation mPicassoTransformation;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -120,7 +124,20 @@ public class SightsListFragment extends Fragment{
         View view = inflater.inflate(R.layout.fragment_sights_list, container, false);
 
         mSightsRecyclerView = (RecyclerView)view.findViewById(R.id.fragment_sights_list_recycler_view);
-        mSightsRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 3));
+        mSightsRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL));
+
+        mPicassoTransformation = new PicassoTransformation(500);
+
+        mSightsRecyclerView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                final int width = mSightsRecyclerView.getWidth();
+                final int height = mSightsRecyclerView.getHeight();
+                final int max = Math.max(width, height);
+                if(width != 0)
+                    mPicassoTransformation.setWidth(max/3);
+            }
+        });
 
         mAdapter = new SightAdapter(mSightsList);
         mSightsRecyclerView.setAdapter(mAdapter);
@@ -183,6 +200,7 @@ public class SightsListFragment extends Fragment{
 
             Picasso.with(getActivity())
                     .load(mSight.getPhotoUrl())
+                    .transform(mPicassoTransformation)
                     .into(mPhotoImageView);
         }
     }
@@ -213,4 +231,6 @@ public class SightsListFragment extends Fragment{
             return mSights.size();
         }
     }
+
+
 }
