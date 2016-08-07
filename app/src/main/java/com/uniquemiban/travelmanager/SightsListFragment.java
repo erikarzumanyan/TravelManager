@@ -1,17 +1,24 @@
 package com.uniquemiban.travelmanager;
 
+import android.content.Context;
+import android.content.res.Configuration;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.text.TextUtils;
+import android.util.AttributeSet;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,6 +27,11 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.squareup.picasso.Cache;
+import com.squareup.picasso.Downloader;
+import com.squareup.picasso.LruCache;
+import com.squareup.picasso.OkHttpDownloader;
 import com.squareup.picasso.Picasso;
 import com.uniquemiban.travelmanager.models.Sight;
 
@@ -31,13 +43,23 @@ import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 
-public class SightsListFragment extends Fragment{
+public class SightsListFragment extends Fragment {
+
+    private static final int LOADING_ITEMS_NUMBER = 5;
+
+    private boolean mLoading = true;
+    int mFirstVisibleItemPosition, mVisibleItemCount, mTotalItemCount;
+
+    private int mCount = 0;
 
     private List<Sight> mSightsList;
     private RecyclerView mSightsRecyclerView;
+    private StaggeredGridLayoutManager mStaggeredGridLayoutManager;
+    private LinearLayoutManager mLinearLayoutManager;
     private SightAdapter mAdapter;
 
     private DatabaseReference mRef;
+    private Query mQuery;
     private Realm mRealm;
 
     private ChildEventListener mChildEventListener;
@@ -53,25 +75,37 @@ public class SightsListFragment extends Fragment{
 
         RealmResults<Sight> results = mRealm.where(Sight.class).findAll();
         mSightsList = new ArrayList<>();
-        for(Sight sight: results){
+        for (Sight sight : results) {
             mSightsList.add(sight);
         }
 
         mChildEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot pDataSnapshot, String pS) {
+
                 final Sight s = pDataSnapshot.getValue(Sight.class);
 
-                mRealm = Realm.getDefaultInstance();
+                if(TextUtils.isEmpty(s.getId())) {
+                    String id = pDataSnapshot.getKey();
+                    s.setId(id);
+                    mRef.child(id).child("id").setValue(id);
+                }
 
-                mRealm.executeTransactionAsync(new Realm.Transaction() {
-                    @Override
-                    public void execute(Realm realm) {
-                        Realm r = Realm.getDefaultInstance();
-                        r.copyToRealmOrUpdate(s);
-                        r.close();
-                    }
-                });
+                else {
+                    mRealm = Realm.getDefaultInstance();
+
+                    mRealm.executeTransactionAsync(new Realm.Transaction() {
+                        @Override
+                        public void execute(Realm realm) {
+                            realm.copyToRealmOrUpdate(s);
+                        }
+                    }, new Realm.Transaction.OnSuccess() {
+                        @Override
+                        public void onSuccess() {
+                            updateUI(s);
+                        }
+                    });
+                }
             }
 
             @Override
@@ -83,9 +117,12 @@ public class SightsListFragment extends Fragment{
                 mRealm.executeTransactionAsync(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
-                        Realm r = Realm.getDefaultInstance();
-                        r.copyToRealmOrUpdate(s);
-                        r.close();
+                        realm.copyToRealmOrUpdate(s);
+                    }
+                }, new Realm.Transaction.OnSuccess() {
+                    @Override
+                    public void onSuccess() {
+                        updateUI(s);
                     }
                 });
             }
@@ -99,10 +136,13 @@ public class SightsListFragment extends Fragment{
                 mRealm.executeTransactionAsync(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
-                        Realm r = Realm.getDefaultInstance();
-                        Sight sight = r.where(Sight.class).equalTo("mId", s.getId()).findFirst();
+                        Sight sight = realm.where(Sight.class).equalTo("mId", s.getId()).findFirst();
                         sight.deleteFromRealm();
-                        realm.close();
+                    }
+                }, new Realm.Transaction.OnSuccess() {
+                    @Override
+                    public void onSuccess() {
+                        deleteFromList(s);
                     }
                 });
             }
@@ -117,6 +157,7 @@ public class SightsListFragment extends Fragment{
 
             }
         };
+
     }
 
     @Nullable
@@ -124,10 +165,58 @@ public class SightsListFragment extends Fragment{
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_sights_list, container, false);
 
-        mSightsRecyclerView = (RecyclerView)view.findViewById(R.id.fragment_sights_list_recycler_view);
-        mSightsRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
-        //mSightsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
-        //SightsRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2));
+        mSightsRecyclerView = (RecyclerView) view.findViewById(R.id.fragment_sights_list_recycler_view);
+        mSightsRecyclerView.setItemAnimator(new RecyclerView.ItemAnimator() {
+            @Override
+            public boolean animateDisappearance(@NonNull RecyclerView.ViewHolder viewHolder, @NonNull ItemHolderInfo preLayoutInfo, @Nullable ItemHolderInfo postLayoutInfo) {
+                return false;
+            }
+
+            @Override
+            public boolean animateAppearance(@NonNull RecyclerView.ViewHolder viewHolder, @Nullable ItemHolderInfo preLayoutInfo, @NonNull ItemHolderInfo postLayoutInfo) {
+                return false;
+            }
+
+            @Override
+            public boolean animatePersistence(@NonNull RecyclerView.ViewHolder viewHolder, @NonNull ItemHolderInfo preLayoutInfo, @NonNull ItemHolderInfo postLayoutInfo) {
+                return false;
+            }
+
+            @Override
+            public boolean animateChange(@NonNull RecyclerView.ViewHolder oldHolder, @NonNull RecyclerView.ViewHolder newHolder, @NonNull ItemHolderInfo preLayoutInfo, @NonNull ItemHolderInfo postLayoutInfo) {
+                return false;
+            }
+
+            @Override
+            public void runPendingAnimations() {
+
+            }
+
+            @Override
+            public void endAnimation(RecyclerView.ViewHolder item) {
+
+            }
+
+            @Override
+            public void endAnimations() {
+
+            }
+
+            @Override
+            public boolean isRunning() {
+                return false;
+            }
+        });
+
+        mStaggeredGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        mLinearLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
+
+        if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
+            mSightsRecyclerView.setLayoutManager(mLinearLayoutManager);
+        else {
+            removeTitle();
+            mSightsRecyclerView.setLayoutManager(mStaggeredGridLayoutManager);
+        }
 
         mPicassoTransformation = new PicassoTransformation(500);
 
@@ -136,9 +225,11 @@ public class SightsListFragment extends Fragment{
             public void onGlobalLayout() {
                 final int width = mSightsRecyclerView.getWidth();
                 final int height = mSightsRecyclerView.getHeight();
-                final int max = Math.max(width, height);
-                if(width != 0)
-                    mPicassoTransformation.setWidth(max/2);
+                final int min = Math.min(width, height);
+                if (width != 0) {
+                    mPicassoTransformation.setWidth(min);
+                    mSightsRecyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                }
             }
         });
 
@@ -152,23 +243,75 @@ public class SightsListFragment extends Fragment{
     public void onStart() {
         super.onStart();
 
-        mRealm.addChangeListener(new RealmChangeListener<Realm>() {
+        if(mRealm.isClosed())
+            mRealm = Realm.getDefaultInstance();
+
+        mQuery = mRef.limitToFirst(mCount = mCount + LOADING_ITEMS_NUMBER);
+        mQuery.addChildEventListener(mChildEventListener);
+
+        mSightsRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onChange(Realm element) {
-                updateUI();
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+
+                if(dy < 0){
+                    mFirstVisibleItemPosition = mLinearLayoutManager.findFirstVisibleItemPosition();
+                    if(mFirstVisibleItemPosition == 0){
+                        setActionBar();
+                    }
+                }
+
+                if(dy > 0) {
+                    if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                        mVisibleItemCount = mLinearLayoutManager.getChildCount();
+                        mTotalItemCount = mLinearLayoutManager.getItemCount();
+                        mFirstVisibleItemPosition = mLinearLayoutManager.findFirstVisibleItemPosition();
+
+                        if(mFirstVisibleItemPosition != 0){
+                            removeActionBar();
+                        }
+
+                        if(mLoading) {
+                            if((mVisibleItemCount + mFirstVisibleItemPosition + 1) >= mRealm.where(Sight.class).findAll().size()
+                                    && (mVisibleItemCount + mFirstVisibleItemPosition + 1) >= mTotalItemCount) {
+                                mQuery.removeEventListener(mChildEventListener);
+                                mQuery = mRef.limitToFirst(mCount = mCount + LOADING_ITEMS_NUMBER);
+                                mQuery.addChildEventListener(mChildEventListener);
+                            }
+                        }
+                    }
+                }
             }
         });
-
-        mRef.addChildEventListener(mChildEventListener);
     }
 
-    private void updateUI() {
-        RealmResults<Sight> results = mRealm.where(Sight.class).findAll();
-        mSightsList.clear();
-        for(Sight sight: results){
-            mSightsList.add(sight);
+    private void deleteFromList(Sight pSight) {
+        int index = -1;
+        String id = pSight.getId();
+        for (int i = 0; i < mSightsList.size(); ++i) {
+            if(mSightsList.get(i).getId().equals(id))
+                index = i;
         }
-        mAdapter.notifyDataSetChanged();
+        if(index != -1){
+            mSightsList.remove(index);
+            mAdapter.notifyItemRangeChanged(index, mSightsList.size()-1);
+        }
+    }
+
+    private void updateUI(Sight pSight) {
+        int index = -1;
+        String id = pSight.getId();
+        for (int i = 0; i < mSightsList.size(); ++i) {
+            if(mSightsList.get(i).getId().equals(id))
+                index = i;
+        }
+        if(index == -1){
+            mSightsList.add(pSight);
+            mAdapter.notifyItemChanged(mSightsList.size()-1);
+        }else {
+            mSightsList.add(index, pSight);
+            mSightsList.remove(index+1);
+            mAdapter.notifyItemChanged(index);
+        }
     }
 
     @Override
@@ -176,43 +319,67 @@ public class SightsListFragment extends Fragment{
         super.onStop();
         mRealm.removeAllChangeListeners();
         mRealm.close();
-        mRef.removeEventListener(mChildEventListener);
+        mQuery.removeEventListener(mChildEventListener);
     }
 
-    private class SightHolder extends RecyclerView.ViewHolder{
+    public void setActionBar(){
+        ((NavigationDrawerActivity)getActivity()).mActionBar.setVisibility(View.VISIBLE);
+    }
+
+    public void removeActionBar(){
+        ((NavigationDrawerActivity)getActivity()).mActionBar.setVisibility(View.GONE);
+    }
+
+    public void removeTitle(){
+        ((NavigationDrawerActivity)getActivity()).mTitle.setVisibility(View.GONE);
+    }
+
+    private class SightHolder extends RecyclerView.ViewHolder {
 
         private Sight mSight;
 
         public ImageView mPhotoImageView;
         public TextView mNameTextView;
-        public TextView mAboutTextView;
+        public TextView mCategoryTextView;
+        public TextView mLocationTextView;
+        public TextView mDistanceTextView;
 
         public SightHolder(View itemView) {
             super(itemView);
 
-            mPhotoImageView = (ImageView)itemView.findViewById(R.id.image_view_sight);
-            mNameTextView = (TextView)itemView.findViewById(R.id.text_view_name);
-         //   mAboutTextView = (TextView)itemView.findViewById(R.id.text_view_about);
+            mPhotoImageView = (ImageView) itemView.findViewById(R.id.image_view_sight);
+
+            mCategoryTextView = (TextView) itemView.findViewById(R.id.text_view_category);
+            mNameTextView = (TextView) itemView.findViewById(R.id.text_view_name);
+            mLocationTextView = (TextView) itemView.findViewById(R.id.text_view_location);
+            mDistanceTextView = (TextView) itemView.findViewById(R.id.text_view_distance);
+
         }
 
-        public void bindSight(Sight pSight){
+        public void bindSight(Sight pSight) {
             mSight = pSight;
 
-            mNameTextView.setText(mSight.getName());
-//            mAboutTextView.setText(mSight.getAbout());
+            if(mSight.getCategory() != null)
+                mCategoryTextView.setText(mSight.getCategory());
+            if(mSight.getName() != null)
+                mNameTextView.setText(mSight.getName());
+            if(mSight.getLocation() != null)
+                mLocationTextView.setText("Location: " + mSight.getLocation());
 
-            Picasso.with(getActivity())
+            mDistanceTextView.setText("Distance: N/A");
+
+            Picasso.with(getActivity().getApplicationContext())
                     .load(mSight.getPhotoUrl())
                     .transform(mPicassoTransformation)
                     .into(mPhotoImageView);
         }
     }
 
-    private class SightAdapter extends RecyclerView.Adapter<SightHolder>{
+    private class SightAdapter extends RecyclerView.Adapter<SightHolder> {
 
         private List<Sight> mSights;
 
-        public SightAdapter(List<Sight> pSights){
+        public SightAdapter(List<Sight> pSights) {
             mSights = pSights;
         }
 
@@ -233,7 +400,7 @@ public class SightsListFragment extends Fragment{
         public int getItemCount() {
             return mSights.size();
         }
-    }
 
+    }
 
 }
