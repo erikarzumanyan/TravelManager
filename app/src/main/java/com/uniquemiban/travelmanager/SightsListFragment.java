@@ -254,9 +254,9 @@ public class SightsListFragment extends Fragment {
                         mTotalItemCount = mLinearLayoutManager.getItemCount();
                         mFirstVisibleItemPosition = mLinearLayoutManager.findFirstVisibleItemPosition();
 
-                        if (mFirstVisibleItemPosition != 0) {
-                            removeActionBar();
-                        }
+//                        if (mFirstVisibleItemPosition != 0) {
+//                            removeActionBar();
+//                        }
 
                         if (mLoading) {
                             if ((mVisibleItemCount + mFirstVisibleItemPosition + 1) >= mRealm.where(Sight.class).findAll().size()
