@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
+import com.uniquemiban.travelmanager.map.GmapFragment;
 import com.uniquemiban.travelmanager.models.Sight;
 
 import io.realm.Realm;
@@ -50,6 +51,24 @@ public class SightFragment extends Fragment{
                     .load(mSight.getPhotoUrl())
                     .into(mSightImageView);
         }
+
+        v.findViewById(R.id.text_view_weather_sight_fragment).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View pView) {
+                WeatherFragment fragment = WeatherFragment.newInstance(mSight.getLatitude(), mSight.getLongitude(), mSight.getPhotoUrl());
+                fragment.show(getActivity().getFragmentManager(), "tag");
+            }
+        });
+
+        v.findViewById(R.id.text_view_location_sight_fragment).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View pView) {
+                GmapFragment fragment = GmapFragment.newInstance(mSight.getName(), mSight.getLongitude(), mSight.getLatitude());
+                getActivity().getFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, fragment, "map")
+                        .commit();
+            }
+        });
 
         return v;
     }

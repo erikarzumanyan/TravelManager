@@ -1,27 +1,21 @@
 package com.uniquemiban.travelmanager;
 
-import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.text.TextUtils;
-import android.util.AttributeSet;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -29,19 +23,13 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
-import com.squareup.picasso.Cache;
-import com.squareup.picasso.Downloader;
-import com.squareup.picasso.LruCache;
-import com.squareup.picasso.OkHttpDownloader;
 import com.squareup.picasso.Picasso;
 import com.uniquemiban.travelmanager.models.Sight;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import io.realm.Realm;
-import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 
 public class SightsListFragment extends Fragment {
@@ -87,13 +75,11 @@ public class SightsListFragment extends Fragment {
 
                 final Sight s = pDataSnapshot.getValue(Sight.class);
 
-                if(TextUtils.isEmpty(s.getId())) {
+                if (TextUtils.isEmpty(s.getId())) {
                     String id = pDataSnapshot.getKey();
                     s.setId(id);
                     mRef.child(id).child("id").setValue(id);
-                }
-
-                else {
+                } else {
                     mRealm = Realm.getDefaultInstance();
 
                     mRealm.executeTransactionAsync(new Realm.Transaction() {
@@ -213,7 +199,7 @@ public class SightsListFragment extends Fragment {
         mStaggeredGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         mLinearLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
 
-        if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
             mSightsRecyclerView.setLayoutManager(mLinearLayoutManager);
         else {
             removeTitle();
@@ -245,7 +231,7 @@ public class SightsListFragment extends Fragment {
     public void onStart() {
         super.onStart();
 
-        if(mRealm.isClosed())
+        if (mRealm.isClosed())
             mRealm = Realm.getDefaultInstance();
 
         mQuery = mRef.limitToFirst(mCount = mCount + LOADING_ITEMS_NUMBER);
@@ -255,25 +241,25 @@ public class SightsListFragment extends Fragment {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
 
-                if(dy < 0){
+                if (dy < 0) {
                     mFirstVisibleItemPosition = mLinearLayoutManager.findFirstVisibleItemPosition();
-                    if(mFirstVisibleItemPosition == 0){
+                    if (mFirstVisibleItemPosition == 0) {
                         setActionBar();
                     }
                 }
 
-                if(dy > 0) {
-                    if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                if (dy > 0) {
+                    if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
                         mVisibleItemCount = mLinearLayoutManager.getChildCount();
                         mTotalItemCount = mLinearLayoutManager.getItemCount();
                         mFirstVisibleItemPosition = mLinearLayoutManager.findFirstVisibleItemPosition();
 
-                        if(mFirstVisibleItemPosition != 0){
+                        if (mFirstVisibleItemPosition != 0) {
                             removeActionBar();
                         }
 
-                        if(mLoading) {
-                            if((mVisibleItemCount + mFirstVisibleItemPosition + 1) >= mRealm.where(Sight.class).findAll().size()
+                        if (mLoading) {
+                            if ((mVisibleItemCount + mFirstVisibleItemPosition + 1) >= mRealm.where(Sight.class).findAll().size()
                                     && (mVisibleItemCount + mFirstVisibleItemPosition + 1) >= mTotalItemCount) {
                                 mQuery.removeEventListener(mChildEventListener);
                                 mQuery = mRef.limitToFirst(mCount = mCount + LOADING_ITEMS_NUMBER);
@@ -290,12 +276,12 @@ public class SightsListFragment extends Fragment {
         int index = -1;
         String id = pSight.getId();
         for (int i = 0; i < mSightsList.size(); ++i) {
-            if(mSightsList.get(i).getId().equals(id))
+            if (mSightsList.get(i).getId().equals(id))
                 index = i;
         }
-        if(index != -1){
+        if (index != -1) {
             mSightsList.remove(index);
-            mAdapter.notifyItemRangeChanged(index, mSightsList.size()-1);
+            mAdapter.notifyItemRangeChanged(index, mSightsList.size() - 1);
         }
     }
 
@@ -303,15 +289,15 @@ public class SightsListFragment extends Fragment {
         int index = -1;
         String id = pSight.getId();
         for (int i = 0; i < mSightsList.size(); ++i) {
-            if(mSightsList.get(i).getId().equals(id))
+            if (mSightsList.get(i).getId().equals(id))
                 index = i;
         }
-        if(index == -1){
+        if (index == -1) {
             mSightsList.add(pSight);
-            mAdapter.notifyItemChanged(mSightsList.size()-1);
-        }else {
+            mAdapter.notifyItemChanged(mSightsList.size() - 1);
+        } else {
             mSightsList.add(index, pSight);
-            mSightsList.remove(index+1);
+            mSightsList.remove(index + 1);
             mAdapter.notifyItemChanged(index);
         }
     }
@@ -323,16 +309,16 @@ public class SightsListFragment extends Fragment {
         mQuery.removeEventListener(mChildEventListener);
     }
 
-    public void setActionBar(){
-        ((NavigationDrawerActivity)getActivity()).mActionBar.setVisibility(View.VISIBLE);
+    public void setActionBar() {
+        ((NavigationDrawerActivity) getActivity()).mActionBar.setVisibility(View.VISIBLE);
     }
 
-    public void removeActionBar(){
-        ((NavigationDrawerActivity)getActivity()).mActionBar.setVisibility(View.GONE);
+    public void removeActionBar() {
+        ((NavigationDrawerActivity) getActivity()).mActionBar.setVisibility(View.GONE);
     }
 
-    public void removeTitle(){
-        ((NavigationDrawerActivity)getActivity()).mTitle.setVisibility(View.GONE);
+    public void removeTitle() {
+        ((NavigationDrawerActivity) getActivity()).mTitle.setVisibility(View.GONE);
     }
 
     private class SightHolder extends RecyclerView.ViewHolder {
@@ -358,12 +344,13 @@ public class SightsListFragment extends Fragment {
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View pView) {
-                    if(mSight != null){
+                    if (mSight != null) {
 
-                        FragmentManager manager = getActivity().getSupportFragmentManager();;
+                        FragmentManager manager = getActivity().getSupportFragmentManager();
+                        ;
                         Fragment fragment = manager.findFragmentByTag(SightFragment.FRAGMENT_TAG);
 
-                        if(fragment == null){
+                        if (fragment == null) {
                             fragment = SightFragment.newInstance(mSight.getId());
                             manager.beginTransaction()
                                     .replace(R.id.fragment_container, fragment, SightFragment.FRAGMENT_TAG)
@@ -377,11 +364,11 @@ public class SightsListFragment extends Fragment {
         public void bindSight(Sight pSight) {
             mSight = pSight;
 
-            if(mSight.getCategory() != null)
+            if (mSight.getCategory() != null)
                 mCategoryTextView.setText(mSight.getCategory());
-            if(mSight.getName() != null)
+            if (mSight.getName() != null)
                 mNameTextView.setText(mSight.getName());
-            if(mSight.getLocation() != null)
+            if (mSight.getLocation() != null)
                 mLocationTextView.setText("Location: " + mSight.getLocation());
 
             mDistanceTextView.setText("Distance: N/A");

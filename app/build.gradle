@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.uniquemiban.travelmanager"
-        minSdkVersion 16
+        minSdkVersion 17
         targetSdkVersion 24
         versionCode 1
         versionName "1.0"
@@ -40,6 +40,14 @@ dependencies {
 
     /* Picasso */
     compile 'com.squareup.picasso:picasso:2.5.2'
+
+    /* Weather */
+    compile 'com.survivingwithandroid:weatherlib_volleyclient:1.6.0'
+
+    /* Google Map */
+    compile 'com.google.android.gms:play-services-maps:9.2.0'
+    compile 'com.google.android.gms:play-services-location:9.2.0'
+    compile 'com.google.maps.android:android-maps-utils:0.3+'
 }
 
 apply plugin: 'com.google.gms.google-services'

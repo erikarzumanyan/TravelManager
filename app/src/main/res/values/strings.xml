@@ -19,4 +19,6 @@
     <string name="nav_header_user_name">Your Name</string>
     <string name="nav_header_email">youremail@gmail.com</string>
 
+    <string name="forecastio_key">9a73fe1cc6cd3cc10dddc1cf44a8c7e0</string>
+
 </resources>
