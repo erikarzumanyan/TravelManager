@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -45,6 +46,7 @@ import io.realm.RealmResults;
 
 public class SightsListFragment extends Fragment {
 
+    public static final String FRAGMENT_TAG = "sights_list_fragment";
     private static final int LOADING_ITEMS_NUMBER = 5;
 
     private boolean mLoading = true;
@@ -317,7 +319,6 @@ public class SightsListFragment extends Fragment {
     @Override
     public void onStop() {
         super.onStop();
-        mRealm.removeAllChangeListeners();
         mRealm.close();
         mQuery.removeEventListener(mChildEventListener);
     }
@@ -354,6 +355,23 @@ public class SightsListFragment extends Fragment {
             mLocationTextView = (TextView) itemView.findViewById(R.id.text_view_location);
             mDistanceTextView = (TextView) itemView.findViewById(R.id.text_view_distance);
 
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View pView) {
+                    if(mSight != null){
+
+                        FragmentManager manager = getActivity().getSupportFragmentManager();;
+                        Fragment fragment = manager.findFragmentByTag(SightFragment.FRAGMENT_TAG);
+
+                        if(fragment == null){
+                            fragment = SightFragment.newInstance(mSight.getId());
+                            manager.beginTransaction()
+                                    .replace(R.id.fragment_container, fragment, SightFragment.FRAGMENT_TAG)
+                                    .commit();
+                        }
+                    }
+                }
+            });
         }
 
         public void bindSight(Sight pSight) {

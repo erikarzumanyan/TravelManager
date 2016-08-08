@@ -14,6 +14,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.uniquemiban.travelmanager.NavigationDrawerActivity;
 import com.uniquemiban.travelmanager.R;
@@ -62,6 +63,7 @@ public class RegisterActivity extends AppCompatActivity {
                     Toast.makeText(RegisterActivity.this, "Repeated Password != Password", Toast.LENGTH_LONG).show();
                     return;
                 }
+
                 FirebaseAuth auth = FirebaseAuth.getInstance();
                 auth.createUserWithEmailAndPassword(mEmailEditText.getText().toString(), mPasswordEditText.getText().toString())
                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -72,6 +74,7 @@ public class RegisterActivity extends AppCompatActivity {
                                                                                     .child("Name").setValue(mNameEditText.getText().toString());
                                     Toast.makeText(RegisterActivity.this, "Account Was Created!", Toast.LENGTH_LONG).show();
                                     startActivity(new Intent(RegisterActivity.this, NavigationDrawerActivity.class));
+                                    finish();
                                 } else {
                                     Toast.makeText(RegisterActivity.this, pTask.getException().toString(), Toast.LENGTH_LONG).show();
                                 }

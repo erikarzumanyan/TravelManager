@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_columnWeight="8">
+
+    <ImageView
+        android:id="@+id/image_view_sight_sight_fragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scaleType="centerCrop"/>
+
+    <TextView
+        android:id="@+id/text_view_about_sight_fragment"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:textSize="25sp"
+        android:textColor="#FFFFFF"
+        android:text="About"
+        android:background="#FF1976D2"
+        android:layout_above="@+id/text_view_sleep_sight_fragment"/>
+
+    <TextView
+        android:id="@+id/text_view_sleep_sight_fragment"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:textSize="25sp"
+        android:textColor="#FFFFFF"
+        android:text="Sleep"
+        android:background="#DF1976D2"
+        android:layout_above="@+id/text_view_eat_sight_fragment"/>
+
+    <TextView
+        android:id="@+id/text_view_eat_sight_fragment"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:textSize="25sp"
+        android:textColor="#FFFFFF"
+        android:text="Eat"
+        android:background="#CF1976D2"
+        android:layout_above="@+id/text_view_location_sight_fragment"/>
+
+    <TextView
+        android:id="@+id/text_view_location_sight_fragment"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:textSize="25sp"
+        android:textColor="#FFFFFF"
+        android:text="Location"
+        android:background="#BF1976D2"
+        android:layout_above="@+id/text_view_weather_sight_fragment"/>
+
+    <TextView
+        android:id="@+id/text_view_weather_sight_fragment"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:textSize="25sp"
+        android:textColor="#FFFFFF"
+        android:text="Weather"
+        android:background="#AF1976D2"
+        android:layout_alignParentBottom="true"/>
+
+</LinearLayout>

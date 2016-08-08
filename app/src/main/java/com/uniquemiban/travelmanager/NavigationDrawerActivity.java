@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -42,6 +43,12 @@ public class NavigationDrawerActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation_drawer);
 
+        if(FirebaseAuth.getInstance().getCurrentUser() == null
+                && !getSharedPreferences(Constants.SHARED_PREFS, MODE_PRIVATE).getBoolean(LoginActivity.SHARED_SKIP, false)){
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+        }
+
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
         mActionBar = (ViewGroup)findViewById(R.id.layout_action_bar);
@@ -58,12 +65,13 @@ public class NavigationDrawerActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         FragmentManager manager = getSupportFragmentManager();
-        Fragment fragment = manager.findFragmentById(R.id.fragment_container);
+        Fragment fragmentSightsList = manager.findFragmentByTag(SightsListFragment.FRAGMENT_TAG);
+        Fragment fragmentSight = manager.findFragmentByTag(SightFragment.FRAGMENT_TAG);
 
-        if(fragment == null){
-            fragment = new SightsListFragment();
+        if(fragmentSightsList == null && fragmentSight == null){
+            fragmentSightsList = new SightsListFragment();
             manager.beginTransaction()
-                    .add(R.id.fragment_container, fragment)
+                    .add(R.id.fragment_container, fragmentSightsList, SightsListFragment.FRAGMENT_TAG)
                     .commit();
         }
     }
@@ -71,8 +79,16 @@ public class NavigationDrawerActivity extends AppCompatActivity
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+        FragmentManager manager = getSupportFragmentManager();
+        Fragment fragment = manager.findFragmentByTag(SightFragment.FRAGMENT_TAG);
+
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
+        } else if(fragment != null){
+            manager.beginTransaction()
+                    .replace(R.id.fragment_container, new SightsListFragment(), SightsListFragment.FRAGMENT_TAG)
+                    .commit();
         } else {
             super.onBackPressed();
         }
