@@ -84,7 +84,7 @@ public class GmapFragment extends Fragment implements OnMapReadyCallback {
             // Declare a variable for the cluster manager.
 
             // Position the map.
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(51.503186, -0.126446), 10));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mLat, mLng), 10));
 
             // Initialize the manager with the context and the map.
             // (Activity extends context, so we can pass 'this' in the constructor.)

@@ -4,72 +4,159 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_columnWeight="8">
+    android:background="#ffffff">
 
-    <ImageView
-        android:id="@+id/image_view_sight_sight_fragment"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:scaleType="centerCrop"/>
-
-    <TextView
-        android:id="@+id/text_view_about_sight_fragment"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="center"
-        android:textSize="25sp"
-        android:textColor="#FFFFFF"
-        android:text="About"
-        android:background="#FF1976D2"
-        android:layout_above="@+id/text_view_sleep_sight_fragment"/>
+        android:layout_weight="10">
 
-    <TextView
-        android:id="@+id/text_view_sleep_sight_fragment"
+        <com.daimajia.slider.library.SliderLayout
+            android:id="@+id/slider"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/e"/>
+
+        <ImageView
+            android:id="@+id/image_view_back_sight_fragment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/activity_vertical_margin"
+            android:src="@drawable/ic_arrow_back_white_24dp"/>
+
+        <ImageView
+            android:id="@+id/image_view_location_sight_fragment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/activity_vertical_margin"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:src="@drawable/ic_location_searching_white_24dp"/>
+
+    </RelativeLayout>
+
+
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="center"
-        android:textSize="25sp"
-        android:textColor="#FFFFFF"
-        android:text="Sleep"
-        android:background="#DF1976D2"
-        android:layout_above="@+id/text_view_eat_sight_fragment"/>
+        android:layout_weight="4"
+        android:weightSum="4"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_vertical_margin"
+        android:paddingStart="@dimen/activity_vertical_margin"
+        android:paddingRight="@dimen/activity_vertical_margin"
+        android:paddingEnd="@dimen/activity_vertical_margin">
 
-    <TextView
-        android:id="@+id/text_view_eat_sight_fragment"
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="3"
+            android:weightSum="5">
+
+            <TextView
+                android:id="@+id/text_view_name_sight_fragment"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="2"
+                android:textColor="#CF000000"
+                android:textStyle="bold"
+                android:textSize="30sp"
+                android:text="Title"/>
+
+            <TextView
+                android:id="@+id/text_view_category_sight_fragment"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="2"
+                android:textSize="25sp"
+                android:text="Category"/>
+
+            <TextView
+                android:id="@+id/text_view_location_sight_fragment"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:textSize="20sp"
+                android:text="Location: "/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/text_view_weather_sight_fragment"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:textSize="25sp"
+            android:text="20°C"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="center"
-        android:textSize="25sp"
-        android:textColor="#FFFFFF"
-        android:text="Eat"
-        android:background="#CF1976D2"
-        android:layout_above="@+id/text_view_location_sight_fragment"/>
+        android:layout_weight="3.5"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_vertical_margin"
+        android:paddingStart="@dimen/activity_vertical_margin"
+        android:paddingRight="@dimen/activity_vertical_margin"
+        android:paddingEnd="@dimen/activity_vertical_margin">
 
-    <TextView
-        android:id="@+id/text_view_location_sight_fragment"
+        <TextView
+            android:id="@+id/text_view_about_sight_fragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textSize="20sp"
+            android:text="about"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="center"
-        android:textSize="25sp"
-        android:textColor="#FFFFFF"
-        android:text="Location"
-        android:background="#BF1976D2"
-        android:layout_above="@+id/text_view_weather_sight_fragment"/>
+        android:layout_weight="1.5"
+        android:weightSum="3">
 
-    <TextView
-        android:id="@+id/text_view_weather_sight_fragment"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="center"
-        android:textSize="25sp"
-        android:textColor="#FFFFFF"
-        android:text="Weather"
-        android:background="#AF1976D2"
-        android:layout_alignParentBottom="true"/>
+        <TextView
+            android:id="@+id/text_view_eat_sight_fragment"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_margin = "1dp"
+            android:background="@color/colorPrimary"
+            android:gravity="center"
+            android:textSize="25sp"
+            android:textColor="#ffffff"
+            android:text="@string/nav_eating"/>
+
+        <TextView
+            android:id="@+id/text_view_sleep_sight_fragment"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_margin = "1dp"
+            android:background="@color/colorPrimary"
+            android:gravity="center"
+            android:textSize="25sp"
+            android:textColor="#ffffff"
+            android:text="@string/nav_sleeping"/>
+
+        <TextView
+            android:id="@+id/text_view_tours_sight_fragment"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_margin = "1dp"
+            android:background="@color/colorPrimary"
+            android:gravity="center"
+            android:textSize="25sp"
+            android:textColor="#ffffff"
+            android:text="@string/nav_tours"/>
+
+    </LinearLayout>
 
 </LinearLayout>

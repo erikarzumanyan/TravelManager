@@ -48,6 +48,14 @@ dependencies {
     compile 'com.google.android.gms:play-services-maps:9.2.0'
     compile 'com.google.android.gms:play-services-location:9.2.0'
     compile 'com.google.maps.android:android-maps-utils:0.3+'
+
+    /* Slider */
+    compile 'com.nineoldandroids:library:2.4.0'
+    compile 'com.daimajia.slider:library:1.1.5@aar'
+    compile 'com.daimajia.easing:library:1.0.1@aar'
+    compile 'com.daimajia.androidanimations:library:1.1.3@aar'
+    compile 'com.nineoldandroids:library:2.4.0'
+    compile 'com.nineoldandroids:library:2.4.0'
 }
 
 apply plugin: 'com.google.gms.google-services'

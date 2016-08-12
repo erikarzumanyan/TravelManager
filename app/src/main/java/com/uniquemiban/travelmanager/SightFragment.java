@@ -7,10 +7,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.daimajia.slider.library.SliderLayout;
+import com.daimajia.slider.library.SliderTypes.BaseSliderView;
+import com.daimajia.slider.library.SliderTypes.TextSliderView;
 import com.squareup.picasso.Picasso;
 import com.uniquemiban.travelmanager.map.GmapFragment;
 import com.uniquemiban.travelmanager.models.Sight;
+
+import java.util.ArrayList;
 
 import io.realm.Realm;
 
@@ -20,8 +26,6 @@ public class SightFragment extends Fragment{
     private static final String KEY_ID = "sight_fragment_key_id";
 
     private Sight mSight;
-
-    private ImageView mSightImageView;
 
     public static SightFragment newInstance(String pId){
         SightFragment fragment = new SightFragment();
@@ -45,11 +49,30 @@ public class SightFragment extends Fragment{
         View v = inflater.inflate(R.layout.fragment_sight, container, false);
 
         if(mSight != null){
-            mSightImageView = (ImageView)v.findViewById(R.id.image_view_sight_sight_fragment);
 
-            Picasso.with(getActivity())
-                    .load(mSight.getPhotoUrl())
-                    .into(mSightImageView);
+            SliderLayout sliderShow = (SliderLayout) v.findViewById(R.id.slider);
+            ArrayList<String> list = new ArrayList<>();
+            list.add(mSight.getPhotoUrl());
+            list.add(mSight.getPhotoUrl());
+
+            for (String name : list) {
+                TextSliderView textSliderView = new TextSliderView(getActivity());
+                textSliderView
+                        .image(name)
+                        .description("Location: " + mSight.getLocation())
+                        .setScaleType(BaseSliderView.ScaleType.CenterCrop);
+
+
+                sliderShow.addSlider(textSliderView);
+            }
+            sliderShow.setDuration(3000);
+            sliderShow.setPresetTransformer(SliderLayout.Transformer.Fade);
+
+            ((TextView)v.findViewById(R.id.text_view_name_sight_fragment)).setText(mSight.getName());
+            ((TextView)v.findViewById(R.id.text_view_about_sight_fragment)).setText(mSight.getAbout());
+            //((TextView)v.findViewById(R.id.text_view_location_sight_fragment)).setText("Location: " + mSight.getLocation());
+            ((TextView)v.findViewById(R.id.text_view_category_sight_fragment)).setText(mSight.getCategory());
+
         }
 
         v.findViewById(R.id.text_view_weather_sight_fragment).setOnClickListener(new View.OnClickListener() {
@@ -60,7 +83,7 @@ public class SightFragment extends Fragment{
             }
         });
 
-        v.findViewById(R.id.text_view_location_sight_fragment).setOnClickListener(new View.OnClickListener() {
+        v.findViewById(R.id.image_view_location_sight_fragment).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View pView) {
                 GmapFragment fragment = GmapFragment.newInstance(mSight.getName(), mSight.getLongitude(), mSight.getLatitude());

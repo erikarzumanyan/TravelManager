@@ -17,6 +17,8 @@ import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.daimajia.androidanimations.library.Techniques;
+import com.daimajia.androidanimations.library.YoYo;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -154,55 +156,16 @@ public class SightsListFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_sights_list, container, false);
 
         mSightsRecyclerView = (RecyclerView) view.findViewById(R.id.fragment_sights_list_recycler_view);
-        mSightsRecyclerView.setItemAnimator(new RecyclerView.ItemAnimator() {
-            @Override
-            public boolean animateDisappearance(@NonNull RecyclerView.ViewHolder viewHolder, @NonNull ItemHolderInfo preLayoutInfo, @Nullable ItemHolderInfo postLayoutInfo) {
-                return false;
-            }
-
-            @Override
-            public boolean animateAppearance(@NonNull RecyclerView.ViewHolder viewHolder, @Nullable ItemHolderInfo preLayoutInfo, @NonNull ItemHolderInfo postLayoutInfo) {
-                return false;
-            }
-
-            @Override
-            public boolean animatePersistence(@NonNull RecyclerView.ViewHolder viewHolder, @NonNull ItemHolderInfo preLayoutInfo, @NonNull ItemHolderInfo postLayoutInfo) {
-                return false;
-            }
-
-            @Override
-            public boolean animateChange(@NonNull RecyclerView.ViewHolder oldHolder, @NonNull RecyclerView.ViewHolder newHolder, @NonNull ItemHolderInfo preLayoutInfo, @NonNull ItemHolderInfo postLayoutInfo) {
-                return false;
-            }
-
-            @Override
-            public void runPendingAnimations() {
-
-            }
-
-            @Override
-            public void endAnimation(RecyclerView.ViewHolder item) {
-
-            }
-
-            @Override
-            public void endAnimations() {
-
-            }
-
-            @Override
-            public boolean isRunning() {
-                return false;
-            }
-        });
 
         mStaggeredGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         mLinearLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
 
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
             mSightsRecyclerView.setLayoutManager(mLinearLayoutManager);
+            setActionBar();
+        }
         else {
-            removeTitle();
+            removeActionBar();
             mSightsRecyclerView.setLayoutManager(mStaggeredGridLayoutManager);
         }
 
@@ -345,9 +308,10 @@ public class SightsListFragment extends Fragment {
                 @Override
                 public void onClick(View pView) {
                     if (mSight != null) {
+                        removeActionBar();
 
                         FragmentManager manager = getActivity().getSupportFragmentManager();
-                        ;
+
                         Fragment fragment = manager.findFragmentByTag(SightFragment.FRAGMENT_TAG);
 
                         if (fragment == null) {
@@ -392,6 +356,10 @@ public class SightsListFragment extends Fragment {
         public SightHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater inflater = LayoutInflater.from(getActivity());
             View v = inflater.inflate(R.layout.item_sight, parent, false);
+            YoYo.with(Techniques.FadeInUp)
+                    .duration(700)
+                    .playOn(v);
+
             return new SightHolder(v);
         }
 
