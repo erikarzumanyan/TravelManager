@@ -162,10 +162,8 @@ public class SightsListFragment extends Fragment {
 
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
             mSightsRecyclerView.setLayoutManager(mLinearLayoutManager);
-            setActionBar();
         }
         else {
-            removeActionBar();
             mSightsRecyclerView.setLayoutManager(mStaggeredGridLayoutManager);
         }
 
@@ -206,9 +204,6 @@ public class SightsListFragment extends Fragment {
 
                 if (dy < 0) {
                     mFirstVisibleItemPosition = mLinearLayoutManager.findFirstVisibleItemPosition();
-                    if (mFirstVisibleItemPosition == 0) {
-                        setActionBar();
-                    }
                 }
 
                 if (dy > 0) {
@@ -216,10 +211,6 @@ public class SightsListFragment extends Fragment {
                         mVisibleItemCount = mLinearLayoutManager.getChildCount();
                         mTotalItemCount = mLinearLayoutManager.getItemCount();
                         mFirstVisibleItemPosition = mLinearLayoutManager.findFirstVisibleItemPosition();
-
-//                        if (mFirstVisibleItemPosition != 0) {
-//                            removeActionBar();
-//                        }
 
                         if (mLoading) {
                             if ((mVisibleItemCount + mFirstVisibleItemPosition + 1) >= mRealm.where(Sight.class).findAll().size()
@@ -272,18 +263,6 @@ public class SightsListFragment extends Fragment {
         mQuery.removeEventListener(mChildEventListener);
     }
 
-    public void setActionBar() {
-        ((NavigationDrawerActivity) getActivity()).mActionBar.setVisibility(View.VISIBLE);
-    }
-
-    public void removeActionBar() {
-        ((NavigationDrawerActivity) getActivity()).mActionBar.setVisibility(View.GONE);
-    }
-
-    public void removeTitle() {
-        ((NavigationDrawerActivity) getActivity()).mTitle.setVisibility(View.GONE);
-    }
-
     private class SightHolder extends RecyclerView.ViewHolder {
 
         private Sight mSight;
@@ -308,7 +287,6 @@ public class SightsListFragment extends Fragment {
                 @Override
                 public void onClick(View pView) {
                     if (mSight != null) {
-                        removeActionBar();
 
                         FragmentManager manager = getActivity().getSupportFragmentManager();
 
