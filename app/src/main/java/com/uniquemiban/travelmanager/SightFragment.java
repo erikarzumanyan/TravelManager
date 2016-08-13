@@ -3,16 +3,15 @@ package com.uniquemiban.travelmanager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.daimajia.slider.library.SliderLayout;
 import com.daimajia.slider.library.SliderTypes.BaseSliderView;
 import com.daimajia.slider.library.SliderTypes.TextSliderView;
-import com.squareup.picasso.Picasso;
 import com.uniquemiban.travelmanager.map.GmapFragment;
 import com.uniquemiban.travelmanager.models.Sight;
 
@@ -93,6 +92,18 @@ public class SightFragment extends Fragment{
             }
         });
 
+        Toolbar toolbar = ((NavigationDrawerActivity)getActivity()).mToolbar;
+        if(toolbar != null)
+            toolbar.setVisibility(View.GONE);
+
         return v;
+    }
+
+    @Override
+    public void onDestroy() {
+        Toolbar toolbar = ((NavigationDrawerActivity)getActivity()).mToolbar;
+        if(toolbar != null)
+            toolbar.setVisibility(View.VISIBLE);
+        super.onDestroy();
     }
 }

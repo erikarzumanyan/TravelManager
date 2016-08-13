@@ -25,11 +25,6 @@ public class PicassoTransformation implements Transformation {
         double d = (double)source.getWidth()/source.getHeight();
         Bitmap result = Bitmap.createScaledBitmap(source, mWidth, (int)(mWidth/d), true);
 
-//        ByteArrayOutputStream out = new ByteArrayOutputStream();
-//        if(result.compress(Bitmap.CompressFormat.PNG, 10, out)) {
-//            result = BitmapFactory.decodeStream(new ByteArrayInputStream(out.toByteArray()));
-//        }
-
         if (result != source) {
             source.recycle();
         }

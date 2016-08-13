@@ -31,6 +31,7 @@ import com.uniquemiban.travelmanager.models.Sight;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.realm.Case;
 import io.realm.Realm;
 import io.realm.RealmResults;
 
@@ -38,6 +39,10 @@ public class SightsListFragment extends Fragment {
 
     public static final String FRAGMENT_TAG = "sights_list_fragment";
     private static final int LOADING_ITEMS_NUMBER = 5;
+
+    private static final int HIDE_THRESHOLD = 20;
+    private int scrolledDistance = 0;
+    private boolean controlsVisible = true;
 
     private boolean mLoading = true;
     int mFirstVisibleItemPosition, mVisibleItemCount, mTotalItemCount;
@@ -202,6 +207,20 @@ public class SightsListFragment extends Fragment {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
 
+                if (scrolledDistance > HIDE_THRESHOLD && controlsVisible) {
+                    ((NavigationDrawerActivity)getActivity()).mToolbar.setVisibility(View.GONE);
+                    controlsVisible = false;
+                    scrolledDistance = 0;
+                } else if (scrolledDistance < -HIDE_THRESHOLD && !controlsVisible) {
+                    ((NavigationDrawerActivity)getActivity()).mToolbar.setVisibility(View.VISIBLE);
+                    controlsVisible = true;
+                    scrolledDistance = 0;
+                }
+
+                if((controlsVisible && dy>0) || (!controlsVisible && dy<0)) {
+                    scrolledDistance += dy;
+                }
+
                 if (dy < 0) {
                     mFirstVisibleItemPosition = mLinearLayoutManager.findFirstVisibleItemPosition();
                 }
@@ -254,6 +273,15 @@ public class SightsListFragment extends Fragment {
             mSightsList.remove(index + 1);
             mAdapter.notifyItemChanged(index);
         }
+    }
+
+    public void searchItemsByName(String pQuery){
+        RealmResults<Sight> results = mRealm.where(Sight.class).contains("mName", pQuery, Case.INSENSITIVE).findAll();
+        mSightsList.clear();
+        for (Sight s: results){
+            mSightsList.add(s);
+        }
+        mAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -327,6 +355,10 @@ public class SightsListFragment extends Fragment {
         private List<Sight> mSights;
 
         public SightAdapter(List<Sight> pSights) {
+            mSights = pSights;
+        }
+
+        public void setSights(List<Sight> pSights){
             mSights = pSights;
         }
 
