@@ -6,4 +6,6 @@
 
     <!--item dimens -->
     <dimen name="item_image_size">300dp</dimen>
+
+    <dimen name="padding">16dp</dimen>
 </resources>

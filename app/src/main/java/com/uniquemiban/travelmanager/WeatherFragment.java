@@ -44,8 +44,6 @@ public class WeatherFragment extends DialogFragment {
     private double longitude;
     private String backgroundImageUrl;
 
-    private OnFragmentInteractionListener mListener;
-
     public WeatherFragment() {
     }
 
@@ -189,22 +187,9 @@ public class WeatherFragment extends DialogFragment {
         });
     }
 
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
-
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
     }
 
 

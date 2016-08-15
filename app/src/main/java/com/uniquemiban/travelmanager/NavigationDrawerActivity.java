@@ -23,8 +23,8 @@ import com.uniquemiban.travelmanager.login.LoginActivity;
 public class NavigationDrawerActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    DrawerLayout mDrawer;
-    Toolbar mToolbar;
+    private DrawerLayout mDrawer;
+    private Toolbar mToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,19 +71,20 @@ public class NavigationDrawerActivity extends AppCompatActivity
         }
     }
 
+    public DrawerLayout getDrawer() {
+        return mDrawer;
+    }
+
+    public Toolbar getToolbar() {
+        return mToolbar;
+    }
+
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
-        FragmentManager manager = getSupportFragmentManager();
-        Fragment fragment = manager.findFragmentByTag(SightFragment.FRAGMENT_TAG);
-
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        } else if (fragment != null) {
-            manager.beginTransaction()
-                    .replace(R.id.fragment_container, new SightsListFragment(), SightsListFragment.FRAGMENT_TAG)
-                    .commit();
         } else {
             super.onBackPressed();
         }
@@ -101,24 +102,6 @@ public class NavigationDrawerActivity extends AppCompatActivity
 
         if (id == R.id.action_settings) {
             return true;
-        } else if(id == R.id.action_search){
-            final SightsListFragment fragment = (SightsListFragment)getSupportFragmentManager().findFragmentByTag(SightsListFragment.FRAGMENT_TAG);
-
-            if(fragment != null) {
-                ((SearchView) item.getActionView()).setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-                    @Override
-                    public boolean onQueryTextSubmit(String query) {
-                        fragment.searchItemsByName(query);
-                        return false;
-                    }
-
-                    @Override
-                    public boolean onQueryTextChange(String newText) {
-                        fragment.searchItemsByName(newText);
-                        return false;
-                    }
-                });
-            }
         }
 
         return super.onOptionsItemSelected(item);

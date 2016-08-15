@@ -9,8 +9,11 @@ public class Sight extends RealmObject {
     private String mId;
 
     private String mName;
-    private String mPhotoUrl;
     private String mAbout;
+
+    private String mPhotoUrl;
+    private String mPhoto1Url;
+    private String mPhoto2Url;
 
     private String mCategory;
     private String mLocation;
@@ -22,7 +25,7 @@ public class Sight extends RealmObject {
 
     }
 
-    public Sight(String pAbout, String pCategory, String pId, double pLatitude, String pLocation, double pLongitude, String pName, String pPhotoUrl) {
+    public Sight(String pAbout, String pCategory, String pId, double pLatitude, String pLocation, double pLongitude, String pName, String pPhoto1Url, String pPhoto2Url, String pPhotoUrl) {
         mAbout = pAbout;
         mCategory = pCategory;
         mId = pId;
@@ -30,6 +33,8 @@ public class Sight extends RealmObject {
         mLocation = pLocation;
         mLongitude = pLongitude;
         mName = pName;
+        mPhoto1Url = pPhoto1Url;
+        mPhoto2Url = pPhoto2Url;
         mPhotoUrl = pPhotoUrl;
     }
 
@@ -95,5 +100,21 @@ public class Sight extends RealmObject {
 
     public void setPhotoUrl(String pPhotoUrl) {
         mPhotoUrl = pPhotoUrl;
+    }
+
+    public String getPhoto1Url() {
+        return mPhoto1Url;
+    }
+
+    public void setPhoto1Url(String pPhoto1Url) {
+        mPhoto1Url = pPhoto1Url;
+    }
+
+    public String getPhoto2Url() {
+        return mPhoto2Url;
+    }
+
+    public void setPhoto2Url(String pPhoto2Url) {
+        mPhoto2Url = pPhoto2Url;
     }
 }

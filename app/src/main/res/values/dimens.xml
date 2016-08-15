@@ -9,4 +9,6 @@
 
     <!--item dimens -->
     <dimen name="item_image_size">200dp</dimen>
+
+    <dimen name="padding">8dp</dimen>
 </resources>

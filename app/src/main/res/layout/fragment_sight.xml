@@ -6,104 +6,81 @@
     android:layout_height="match_parent"
     android:background="#ffffff">
 
-    <RelativeLayout
+    <com.daimajia.slider.library.SliderLayout
+        android:id="@+id/slider"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="10">
-
-        <com.daimajia.slider.library.SliderLayout
-            android:id="@+id/slider"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:src="@drawable/e"/>
-
-        <ImageView
-            android:id="@+id/image_view_back_sight_fragment"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="@dimen/activity_vertical_margin"
-            android:src="@drawable/ic_arrow_back_white_24dp"/>
-
-        <ImageView
-            android:id="@+id/image_view_location_sight_fragment"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="@dimen/activity_vertical_margin"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentTop="true"
-            android:src="@drawable/ic_location_searching_white_24dp"/>
-
-    </RelativeLayout>
-
+        android:layout_weight="10"
+        android:paddingBottom="@dimen/padding"/>
 
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="4"
+        android:layout_height="wrap_content"
         android:weightSum="4"
-        android:paddingTop="@dimen/activity_vertical_margin"
-        android:paddingLeft="@dimen/activity_vertical_margin"
-        android:paddingStart="@dimen/activity_vertical_margin"
-        android:paddingRight="@dimen/activity_vertical_margin"
-        android:paddingEnd="@dimen/activity_vertical_margin">
+        android:paddingLeft="@dimen/padding"
+        android:paddingStart="@dimen/padding"
+        android:paddingRight="@dimen/padding"
+        android:paddingEnd="@dimen/padding"
+        android:gravity="center_vertical">
 
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="3"
-            android:weightSum="5">
+            android:layout_height="wrap_content"
+            android:layout_weight="3">
+
+            <TextView
+                android:id="@+id/text_view_fav_count_sight_fragment"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:text="0 likes"/>
 
             <TextView
                 android:id="@+id/text_view_name_sight_fragment"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="2"
+                android:layout_height="wrap_content"
                 android:textColor="#CF000000"
                 android:textStyle="bold"
-                android:textSize="30sp"
+                android:textSize="28sp"
                 android:text="Title"/>
 
             <TextView
                 android:id="@+id/text_view_category_sight_fragment"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="2"
-                android:textSize="25sp"
+                android:layout_height="wrap_content"
+                android:textSize="23sp"
                 android:text="Category"/>
-
-            <TextView
-                android:id="@+id/text_view_location_sight_fragment"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:textSize="20sp"
-                android:text="Location: "/>
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/text_view_weather_sight_fragment"
+        <ImageView
+            android:id="@+id/image_view_fav_sight_fragment"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:gravity="center"
-            android:textSize="25sp"
-            android:text="20°C"/>
+            android:src="@drawable/fav_add"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"/>
 
     </LinearLayout>
 
-    <LinearLayout
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray"
+        android:paddingTop="1dp"/>
+
+    <ScrollView
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="3.5"
-        android:paddingTop="@dimen/activity_vertical_margin"
-        android:paddingLeft="@dimen/activity_vertical_margin"
-        android:paddingStart="@dimen/activity_vertical_margin"
-        android:paddingRight="@dimen/activity_vertical_margin"
-        android:paddingEnd="@dimen/activity_vertical_margin">
+        android:layout_weight="4"
+        android:paddingLeft="@dimen/padding"
+        android:paddingStart="@dimen/padding"
+        android:paddingRight="@dimen/padding"
+        android:paddingEnd="@dimen/padding"
+        android:paddingBottom="@dimen/padding">
 
         <TextView
             android:id="@+id/text_view_about_sight_fragment"
@@ -112,7 +89,7 @@
             android:textSize="20sp"
             android:text="about"/>
 
-    </LinearLayout>
+    </ScrollView>
 
     <LinearLayout
         android:orientation="horizontal"

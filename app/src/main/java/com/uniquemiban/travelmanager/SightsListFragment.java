@@ -6,14 +6,23 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.animation.Animation;
+import android.view.animation.Transformation;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -61,7 +70,7 @@ public class SightsListFragment extends Fragment {
 
     private ChildEventListener mChildEventListener;
 
-    private PicassoTransformation mPicassoTransformation;
+    private int mWidth = 800;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -160,7 +169,50 @@ public class SightsListFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_sights_list, container, false);
 
+        setHasOptionsMenu(true);
+
         mSightsRecyclerView = (RecyclerView) view.findViewById(R.id.fragment_sights_list_recycler_view);
+        mSightsRecyclerView.setItemAnimator(new RecyclerView.ItemAnimator() {
+            @Override
+            public boolean animateDisappearance(@NonNull RecyclerView.ViewHolder viewHolder, @NonNull ItemHolderInfo preLayoutInfo, @Nullable ItemHolderInfo postLayoutInfo) {
+                return false;
+            }
+
+            @Override
+            public boolean animateAppearance(@NonNull RecyclerView.ViewHolder viewHolder, @Nullable ItemHolderInfo preLayoutInfo, @NonNull ItemHolderInfo postLayoutInfo) {
+                return false;
+            }
+
+            @Override
+            public boolean animatePersistence(@NonNull RecyclerView.ViewHolder viewHolder, @NonNull ItemHolderInfo preLayoutInfo, @NonNull ItemHolderInfo postLayoutInfo) {
+                return false;
+            }
+
+            @Override
+            public boolean animateChange(@NonNull RecyclerView.ViewHolder oldHolder, @NonNull RecyclerView.ViewHolder newHolder, @NonNull ItemHolderInfo preLayoutInfo, @NonNull ItemHolderInfo postLayoutInfo) {
+                return false;
+            }
+
+            @Override
+            public void runPendingAnimations() {
+
+            }
+
+            @Override
+            public void endAnimation(RecyclerView.ViewHolder item) {
+
+            }
+
+            @Override
+            public void endAnimations() {
+
+            }
+
+            @Override
+            public boolean isRunning() {
+                return false;
+            }
+        });
 
         mStaggeredGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         mLinearLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
@@ -172,16 +224,14 @@ public class SightsListFragment extends Fragment {
             mSightsRecyclerView.setLayoutManager(mStaggeredGridLayoutManager);
         }
 
-        mPicassoTransformation = new PicassoTransformation(500);
-
         mSightsRecyclerView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
                 final int width = mSightsRecyclerView.getWidth();
                 final int height = mSightsRecyclerView.getHeight();
-                final int min = Math.min(width, height);
+                int min = Math.min(width, height);
                 if (width != 0) {
-                    mPicassoTransformation.setWidth(min);
+                    mWidth = min;
                     mSightsRecyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 }
             }
@@ -203,16 +253,18 @@ public class SightsListFragment extends Fragment {
         mQuery = mRef.limitToFirst(mCount = mCount + LOADING_ITEMS_NUMBER);
         mQuery.addChildEventListener(mChildEventListener);
 
+        final ActionBar bar = ((NavigationDrawerActivity)getActivity()).getSupportActionBar();
+
         mSightsRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
 
                 if (scrolledDistance > HIDE_THRESHOLD && controlsVisible) {
-                    ((NavigationDrawerActivity)getActivity()).mToolbar.setVisibility(View.GONE);
+                    bar.hide();
                     controlsVisible = false;
                     scrolledDistance = 0;
                 } else if (scrolledDistance < -HIDE_THRESHOLD && !controlsVisible) {
-                    ((NavigationDrawerActivity)getActivity()).mToolbar.setVisibility(View.VISIBLE);
+                    bar.show();
                     controlsVisible = true;
                     scrolledDistance = 0;
                 }
@@ -235,7 +287,7 @@ public class SightsListFragment extends Fragment {
                             if ((mVisibleItemCount + mFirstVisibleItemPosition + 1) >= mRealm.where(Sight.class).findAll().size()
                                     && (mVisibleItemCount + mFirstVisibleItemPosition + 1) >= mTotalItemCount) {
                                 mQuery.removeEventListener(mChildEventListener);
-                                mQuery = mRef.limitToFirst(mCount = mCount + LOADING_ITEMS_NUMBER);
+                                mQuery = mRef.orderByKey().startAt(mSightsList.get(mSightsList.size() - 1).getId()).limitToFirst(LOADING_ITEMS_NUMBER);
                                 mQuery.addChildEventListener(mChildEventListener);
                             }
                         }
@@ -323,7 +375,8 @@ public class SightsListFragment extends Fragment {
                         if (fragment == null) {
                             fragment = SightFragment.newInstance(mSight.getId());
                             manager.beginTransaction()
-                                    .replace(R.id.fragment_container, fragment, SightFragment.FRAGMENT_TAG)
+                                    .add(R.id.fragment_container, fragment, SightFragment.FRAGMENT_TAG)
+                                    .addToBackStack(SightFragment.FRAGMENT_TAG)
                                     .commit();
                         }
                     }
@@ -345,7 +398,8 @@ public class SightsListFragment extends Fragment {
 
             Picasso.with(getActivity().getApplicationContext())
                     .load(mSight.getPhotoUrl())
-                    .transform(mPicassoTransformation)
+                    .resize(mWidth, 0)
+                    .onlyScaleDown()
                     .into(mPhotoImageView);
         }
     }
@@ -358,14 +412,11 @@ public class SightsListFragment extends Fragment {
             mSights = pSights;
         }
 
-        public void setSights(List<Sight> pSights){
-            mSights = pSights;
-        }
-
         @Override
         public SightHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater inflater = LayoutInflater.from(getActivity());
             View v = inflater.inflate(R.layout.item_sight, parent, false);
+
             YoYo.with(Techniques.FadeInUp)
                     .duration(700)
                     .playOn(v);
@@ -386,4 +437,30 @@ public class SightsListFragment extends Fragment {
 
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        inflater.inflate(R.menu.items_list, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if(id == R.id.action_search){
+            ((SearchView) item.getActionView()).setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    searchItemsByName(query);
+                    return false;
+                }
+
+                @Override
+                public boolean onQueryTextChange(String newText) {
+                    searchItemsByName(newText);
+                    return false;
+                }
+            });
+        }
+        return super.onOptionsItemSelected(item);
+    }
 }
