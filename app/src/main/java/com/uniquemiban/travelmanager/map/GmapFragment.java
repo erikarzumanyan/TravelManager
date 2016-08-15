@@ -23,6 +23,8 @@ import com.uniquemiban.travelmanager.R;
 public class GmapFragment extends Fragment implements OnMapReadyCallback {
 
     private static final String ARG_TITLE = "arg_title";
+
+
     private static final String ARG_LONGITUDE = "arg_longitude";
     private static final String ARG_LATITUDE = "arg_latitude";
 
