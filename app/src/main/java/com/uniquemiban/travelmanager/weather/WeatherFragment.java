@@ -1,7 +1,6 @@
-package com.uniquemiban.travelmanager;
+package com.uniquemiban.travelmanager.weather;
 
 import android.app.DialogFragment;
-import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,6 +21,7 @@ import com.survivingwithandroid.weather.lib.model.HistoricalHourWeather;
 import com.survivingwithandroid.weather.lib.model.HistoricalWeather;
 import com.survivingwithandroid.weather.lib.provider.openweathermap.OpenweathermapProviderType;
 import com.survivingwithandroid.weather.lib.request.WeatherRequest;
+import com.uniquemiban.travelmanager.R;
 
 import java.util.Calendar;
 import java.util.Date;
