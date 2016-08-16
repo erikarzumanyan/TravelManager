@@ -21,5 +21,7 @@
 
     <string name="forecastio_key">9a73fe1cc6cd3cc10dddc1cf44a8c7e0</string>
     <string name="action_search">Search</string>
+    <string name="action_location">Location</string>
+    <string name="action_weather">Weather</string>
 
 </resources>

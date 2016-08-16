@@ -8,10 +8,4 @@
         android:title="@string/action_location"
         app:showAsAction="ifRoom|collapseActionView"/>
 
-    <item
-        android:id="@+id/action_weather"
-        android:icon="@drawable/ic_wb_cloudy_white_24dp"
-        android:title="@string/action_weather"
-        app:showAsAction="ifRoom|collapseActionView"/>
-
 </menu>
