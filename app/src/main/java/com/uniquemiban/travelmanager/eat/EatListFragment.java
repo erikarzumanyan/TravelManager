@@ -1,10 +1,11 @@
-package com.uniquemiban.travelmanager.sight;
+package com.uniquemiban.travelmanager.eat;
 
+
+import android.support.v4.app.Fragment;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.LinearLayoutManager;
@@ -31,10 +32,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.squareup.picasso.Picasso;
-import com.uniquemiban.travelmanager.utils.Constants;
-import com.uniquemiban.travelmanager.start.NavigationDrawerActivity;
 import com.uniquemiban.travelmanager.R;
+import com.uniquemiban.travelmanager.models.Eat;
 import com.uniquemiban.travelmanager.models.Sight;
+import com.uniquemiban.travelmanager.sight.SightFragment;
+import com.uniquemiban.travelmanager.start.NavigationDrawerActivity;
+import com.uniquemiban.travelmanager.utils.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,9 +46,9 @@ import io.realm.Case;
 import io.realm.Realm;
 import io.realm.RealmResults;
 
-public class SightsListFragment extends Fragment {
+public class EatListFragment extends Fragment {
 
-    public static final String FRAGMENT_TAG = "sights_list_fragment";
+    public static final String FRAGMENT_TAG = "eat_list_fragment";
     private static final int LOADING_ITEMS_NUMBER = 5;
 
     private static final int HIDE_THRESHOLD = 20;
@@ -57,11 +60,11 @@ public class SightsListFragment extends Fragment {
 
     private int mCount = 0;
 
-    private List<Sight> mSightsList;
-    private RecyclerView mSightsRecyclerView;
+    private List<Eat> mEatList;
+    private RecyclerView mEatRecyclerView;
     private StaggeredGridLayoutManager mStaggeredGridLayoutManager;
     private LinearLayoutManager mLinearLayoutManager;
-    private SightAdapter mAdapter;
+    private EatAdapter mAdapter;
 
     private DatabaseReference mRef;
     private Query mQuery;
@@ -73,24 +76,24 @@ public class SightsListFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_SIGHTS).getRef();
+        mRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_EATS).getRef();
         mRealm = Realm.getDefaultInstance();
 
-        RealmResults<Sight> results = mRealm.where(Sight.class).findAll();
-        mSightsList = new ArrayList<>();
-        for (Sight sight : results) {
-            mSightsList.add(sight);
+        RealmResults<Eat> results = mRealm.where(Eat.class).findAll();
+        mEatList = new ArrayList<>();
+        for (Eat eat : results) {
+            mEatList.add(eat);
         }
 
         mChildEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot pDataSnapshot, String pS) {
 
-                final Sight s = pDataSnapshot.getValue(Sight.class);
+                final Eat e = pDataSnapshot.getValue(Eat.class);
 
-                if (TextUtils.isEmpty(s.getId())) {
+                if (TextUtils.isEmpty(e.getId())) {
                     String id = pDataSnapshot.getKey();
-                    s.setId(id);
+                    e.setId(id);
                     mRef.child(id).child("id").setValue(id);
                 } else {
                     mRealm = Realm.getDefaultInstance();
@@ -98,12 +101,12 @@ public class SightsListFragment extends Fragment {
                     mRealm.executeTransactionAsync(new Realm.Transaction() {
                         @Override
                         public void execute(Realm realm) {
-                            realm.copyToRealmOrUpdate(s);
+                            realm.copyToRealmOrUpdate(e);
                         }
                     }, new Realm.Transaction.OnSuccess() {
                         @Override
                         public void onSuccess() {
-                            updateUI(s);
+                            updateUI(e);
                         }
                     });
                 }
@@ -111,39 +114,39 @@ public class SightsListFragment extends Fragment {
 
             @Override
             public void onChildChanged(DataSnapshot pDataSnapshot, String pS) {
-                final Sight s = pDataSnapshot.getValue(Sight.class);
+                final Eat e = pDataSnapshot.getValue(Eat.class);
 
                 mRealm = Realm.getDefaultInstance();
 
                 mRealm.executeTransactionAsync(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
-                        realm.copyToRealmOrUpdate(s);
+                        realm.copyToRealmOrUpdate(e);
                     }
                 }, new Realm.Transaction.OnSuccess() {
                     @Override
                     public void onSuccess() {
-                        updateUI(s);
+                        updateUI(e);
                     }
                 });
             }
 
             @Override
             public void onChildRemoved(DataSnapshot pDataSnapshot) {
-                final Sight s = pDataSnapshot.getValue(Sight.class);
+                final Eat e = pDataSnapshot.getValue(Eat.class);
 
                 mRealm = Realm.getDefaultInstance();
 
                 mRealm.executeTransactionAsync(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
-                        Sight sight = realm.where(Sight.class).equalTo("mId", s.getId()).findFirst();
-                        sight.deleteFromRealm();
+                        Eat eat = realm.where(Eat.class).equalTo("mId", e.getId()).findFirst();
+                        eat.deleteFromRealm();
                     }
                 }, new Realm.Transaction.OnSuccess() {
                     @Override
                     public void onSuccess() {
-                        deleteFromList(s);
+                        deleteFromList(e);
                     }
                 });
             }
@@ -164,12 +167,12 @@ public class SightsListFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_sights_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_eat_list, container, false);
 
         setHasOptionsMenu(true);
 
-        mSightsRecyclerView = (RecyclerView) view.findViewById(R.id.fragment_sights_list_recycler_view);
-        mSightsRecyclerView.setItemAnimator(new RecyclerView.ItemAnimator() {
+        mEatRecyclerView = (RecyclerView) view.findViewById(R.id.fragment_eat_list_recycler_view);
+        mEatRecyclerView.setItemAnimator(new RecyclerView.ItemAnimator() {
             @Override
             public boolean animateDisappearance(@NonNull RecyclerView.ViewHolder viewHolder, @NonNull ItemHolderInfo preLayoutInfo, @Nullable ItemHolderInfo postLayoutInfo) {
                 return false;
@@ -215,14 +218,14 @@ public class SightsListFragment extends Fragment {
         mLinearLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
 
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-            mSightsRecyclerView.setLayoutManager(mLinearLayoutManager);
+            mEatRecyclerView.setLayoutManager(mLinearLayoutManager);
         }
         else {
-            mSightsRecyclerView.setLayoutManager(mStaggeredGridLayoutManager);
+            mEatRecyclerView.setLayoutManager(mStaggeredGridLayoutManager);
         }
 
-        mAdapter = new SightAdapter(mSightsList);
-        mSightsRecyclerView.setAdapter(mAdapter);
+        mAdapter = new EatAdapter(mEatList);
+        mEatRecyclerView.setAdapter(mAdapter);
 
         return view;
     }
@@ -239,7 +242,7 @@ public class SightsListFragment extends Fragment {
 
         final ActionBar bar = ((NavigationDrawerActivity)getActivity()).getSupportActionBar();
 
-        mSightsRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+        mEatRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
 
@@ -271,7 +274,7 @@ public class SightsListFragment extends Fragment {
                             if ((mVisibleItemCount + mFirstVisibleItemPosition + 1) >= mRealm.where(Sight.class).findAll().size()
                                     && (mVisibleItemCount + mFirstVisibleItemPosition + 1) >= mTotalItemCount) {
                                 mQuery.removeEventListener(mChildEventListener);
-                                mQuery = mRef.orderByKey().startAt(mSightsList.get(mSightsList.size() - 1).getId()).limitToFirst(LOADING_ITEMS_NUMBER);
+                                mQuery = mRef.orderByKey().startAt(mEatList.get(mEatList.size() - 1).getId()).limitToFirst(LOADING_ITEMS_NUMBER);
                                 mQuery.addChildEventListener(mChildEventListener);
                             }
                         }
@@ -281,41 +284,41 @@ public class SightsListFragment extends Fragment {
         });
     }
 
-    private void deleteFromList(Sight pSight) {
+    private void deleteFromList(Eat pEat) {
         int index = -1;
-        String id = pSight.getId();
-        for (int i = 0; i < mSightsList.size(); ++i) {
-            if (mSightsList.get(i).getId().equals(id))
+        String id = pEat.getId();
+        for (int i = 0; i < mEatList.size(); ++i) {
+            if (mEatList.get(i).getId().equals(id))
                 index = i;
         }
         if (index != -1) {
-            mSightsList.remove(index);
-            mAdapter.notifyItemRangeChanged(index, mSightsList.size() - 1);
+            mEatList.remove(index);
+            mAdapter.notifyItemRangeChanged(index, mEatList.size() - 1);
         }
     }
 
-    private void updateUI(Sight pSight) {
+    private void updateUI(Eat pEat) {
         int index = -1;
-        String id = pSight.getId();
-        for (int i = 0; i < mSightsList.size(); ++i) {
-            if (mSightsList.get(i).getId().equals(id))
+        String id = pEat.getId();
+        for (int i = 0; i < mEatList.size(); ++i) {
+            if (mEatList.get(i).getId().equals(id))
                 index = i;
         }
         if (index == -1) {
-            mSightsList.add(pSight);
-            mAdapter.notifyItemChanged(mSightsList.size() - 1);
+            mEatList.add(pEat);
+            mAdapter.notifyItemChanged(mEatList.size() - 1);
         } else {
-            mSightsList.add(index, pSight);
-            mSightsList.remove(index + 1);
+            mEatList.add(index, pEat);
+            mEatList.remove(index + 1);
             mAdapter.notifyItemChanged(index);
         }
     }
 
     public void searchItemsByName(String pQuery){
-        RealmResults<Sight> results = mRealm.where(Sight.class).contains("mName", pQuery, Case.INSENSITIVE).findAll();
-        mSightsList.clear();
-        for (Sight s: results){
-            mSightsList.add(s);
+        RealmResults<Eat> results = mRealm.where(Eat.class).contains("mName", pQuery, Case.INSENSITIVE).findAll();
+        mEatList.clear();
+        for (Eat e: results){
+            mEatList.add(e);
         }
         mAdapter.notifyDataSetChanged();
     }
@@ -327,37 +330,36 @@ public class SightsListFragment extends Fragment {
         mQuery.removeEventListener(mChildEventListener);
     }
 
-    private class SightHolder extends RecyclerView.ViewHolder {
+    private class EatHolder extends RecyclerView.ViewHolder {
 
-        private Sight mSight;
+        private Eat mEat;
 
         public ImageView mPhotoImageView;
         public TextView mNameTextView;
-        public TextView mCategoryTextView;
         public TextView mLocationTextView;
         public TextView mDistanceTextView;
 
-        public SightHolder(View itemView) {
+        public EatHolder(View itemView) {
             super(itemView);
 
-            mPhotoImageView = (ImageView) itemView.findViewById(R.id.image_view_sight);
+            mPhotoImageView = (ImageView) itemView.findViewById(R.id.image_view_eat);
 
-            mCategoryTextView = (TextView) itemView.findViewById(R.id.text_view_category);
-            mNameTextView = (TextView) itemView.findViewById(R.id.text_view_name);
-            mLocationTextView = (TextView) itemView.findViewById(R.id.text_view_location);
-            mDistanceTextView = (TextView) itemView.findViewById(R.id.text_view_distance);
+
+            mNameTextView = (TextView) itemView.findViewById(R.id.text_view_eat);
+            mLocationTextView = (TextView) itemView.findViewById(R.id.text_view_location_eat);
+            mDistanceTextView = (TextView) itemView.findViewById(R.id.text_view_distance_eat);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View pView) {
-                    if (mSight != null) {
+                    if (mEat != null) {
 
                         FragmentManager manager = getActivity().getSupportFragmentManager();
 
-                        Fragment fragment = manager.findFragmentByTag(SightFragment.FRAGMENT_TAG);
+                        Fragment fragment = manager.findFragmentByTag(EatFragment.FRAGMENT_TAG);
 
                         if (fragment == null) {
-                            fragment = SightFragment.newInstance(mSight.getId());
+                            fragment = EatFragment.newInstance(mEat.getId());
                             manager.beginTransaction()
                                     .add(R.id.fragment_container, fragment, SightFragment.FRAGMENT_TAG)
                                     .addToBackStack(SightFragment.FRAGMENT_TAG)
@@ -368,55 +370,53 @@ public class SightsListFragment extends Fragment {
             });
         }
 
-        public void bindSight(Sight pSight) {
-            mSight = pSight;
+        public void bindEat(Eat pEat) {
+            mEat = pEat;
 
-            if (mSight.getCategory() != null)
-                mCategoryTextView.setText(mSight.getCategory());
-            if (mSight.getName() != null)
-                mNameTextView.setText(mSight.getName());
-            if (mSight.getLocation() != null)
-                mLocationTextView.setText("Location: " + mSight.getLocation());
+            if (mEat.getName() != null)
+                mNameTextView.setText(mEat.getName());
+            if (mEat.getLocation() != null)
+                mLocationTextView.setText("Location: " + mEat.getLocation());
 
             mDistanceTextView.setText("Distance: N/A");
 
             Picasso.with(getActivity().getApplicationContext())
-                    .load(mSight.getPhotoUrl())
+                    .load(mEat.getPhotoUrl())
                     .resize(((NavigationDrawerActivity)getActivity()).getWidth(), 0)
                     .onlyScaleDown()
                     .into(mPhotoImageView);
         }
     }
 
-    private class SightAdapter extends RecyclerView.Adapter<SightHolder> {
+    private class EatAdapter extends RecyclerView.Adapter<EatHolder> {
 
-        private List<Sight> mSights;
+        private List<Eat> mEats;
 
-        public SightAdapter(List<Sight> pSights) {
-            mSights = pSights;
+        public EatAdapter(List<Eat> pEats) {
+            mEats = pEats;
         }
 
         @Override
-        public SightHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        public EatHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater inflater = LayoutInflater.from(getActivity());
-            View v = inflater.inflate(R.layout.item_sight, parent, false);
+            View v = inflater.inflate(R.layout.items_eat, parent, false);
 
             YoYo.with(Techniques.FadeInUp)
                     .duration(700)
                     .playOn(v);
 
-            return new SightHolder(v);
+            return new EatHolder(v);
         }
 
         @Override
-        public void onBindViewHolder(SightHolder holder, int position) {
-            Sight sight = mSights.get(position);
-            holder.bindSight(sight);
+        public void onBindViewHolder(EatHolder holder, int position) {
+            Eat eat = mEats.get(position);
+            holder.bindEat(eat);
         }
 
         @Override
         public int getItemCount() {
-            return mSights.size();
+            return mEats.size();
         }
 
     }
