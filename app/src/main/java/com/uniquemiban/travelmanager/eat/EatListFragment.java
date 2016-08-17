@@ -7,11 +7,14 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -170,6 +173,20 @@ public class EatListFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_eat_list, container, false);
 
         setHasOptionsMenu(true);
+
+        NavigationDrawerActivity activity = (NavigationDrawerActivity)getActivity();
+
+        ActionBar bar = activity.getSupportActionBar();
+        bar.setDisplayHomeAsUpEnabled(false);
+        bar.setDisplayShowCustomEnabled(true);
+
+        Toolbar toolbar = activity.getToolbar();
+
+        toolbar.setTitle("Eat");
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                activity, activity.getDrawer(), toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        activity.getDrawer().setDrawerListener(toggle);
+        toggle.syncState();
 
         mEatRecyclerView = (RecyclerView) view.findViewById(R.id.fragment_eat_list_recycler_view);
         mEatRecyclerView.setItemAnimator(new RecyclerView.ItemAnimator() {
@@ -362,6 +379,7 @@ public class EatListFragment extends Fragment {
                             fragment = EatFragment.newInstance(mEat.getId());
                             manager.beginTransaction()
                                     .add(R.id.fragment_container, fragment, SightFragment.FRAGMENT_TAG)
+                                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                                     .addToBackStack(SightFragment.FRAGMENT_TAG)
                                     .commit();
                         }

@@ -2,11 +2,11 @@ package com.uniquemiban.travelmanager.start;
 
 import android.content.Intent;
 import android.graphics.Point;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -16,14 +16,12 @@ import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.uniquemiban.travelmanager.eat.EatListFragment;
 import com.uniquemiban.travelmanager.utils.Constants;
 import com.uniquemiban.travelmanager.R;
 import com.uniquemiban.travelmanager.login.LoginActivity;
-import com.uniquemiban.travelmanager.sight.SightFragment;
 import com.uniquemiban.travelmanager.sight.SightsListFragment;
 
 public class NavigationDrawerActivity extends AppCompatActivity
@@ -70,24 +68,16 @@ public class NavigationDrawerActivity extends AppCompatActivity
         setSupportActionBar(mToolbar);
 
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, mDrawer, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        mDrawer.setDrawerListener(toggle);
-        toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         FragmentManager manager = getSupportFragmentManager();
-        Fragment fragmentSightsList = manager.findFragmentByTag(SightsListFragment.FRAGMENT_TAG);
-        Fragment fragmentSight = manager.findFragmentByTag(SightFragment.FRAGMENT_TAG);
-
-        if (fragmentSightsList == null && fragmentSight == null) {
-            fragmentSightsList = new SightsListFragment();
-            manager.beginTransaction()
-                    .add(R.id.fragment_container, fragmentSightsList, SightsListFragment.FRAGMENT_TAG)
-                    .commit();
-        }
+        SightsListFragment fragment = new SightsListFragment();
+        manager.beginTransaction()
+                .add(R.id.fragment_container, fragment, SightsListFragment.FRAGMENT_TAG)
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                .commit();
     }
 
     public int getWidth() {
@@ -143,34 +133,25 @@ public class NavigationDrawerActivity extends AppCompatActivity
 
             if(fragment == null){
                 fragment = new SightsListFragment();
-                manager.beginTransaction()
-                        .add(R.id.fragment_container, fragment, SightsListFragment.FRAGMENT_TAG)
-                        .addToBackStack(SightsListFragment.FRAGMENT_TAG)
-                        .commit();
-            }else {
-                manager.popBackStack(SightsListFragment.FRAGMENT_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                manager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 manager.beginTransaction()
                         .replace(R.id.fragment_container, fragment, SightsListFragment.FRAGMENT_TAG)
-                        .addToBackStack(SightsListFragment.FRAGMENT_TAG)
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                         .commit();
             }
 
         } else if (id == R.id.nav_sleeping) {
 
         } else if (id == R.id.nav_eating) {
+
             Fragment fragment = manager.findFragmentByTag(EatListFragment.FRAGMENT_TAG);
 
             if(fragment == null){
                 fragment = new EatListFragment();
-                manager.beginTransaction()
-                        .add(R.id.fragment_container, fragment, EatListFragment.FRAGMENT_TAG)
-                        .addToBackStack(EatListFragment.FRAGMENT_TAG)
-                        .commit();
-            }else {
-                manager.popBackStack(SightsListFragment.FRAGMENT_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                manager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 manager.beginTransaction()
                         .replace(R.id.fragment_container, fragment, EatListFragment.FRAGMENT_TAG)
-                        .addToBackStack(EatListFragment.FRAGMENT_TAG)
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                         .commit();
             }
 

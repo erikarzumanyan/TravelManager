@@ -22,6 +22,8 @@ import com.uniquemiban.travelmanager.R;
 
 public class GmapFragment extends Fragment implements OnMapReadyCallback {
 
+    public static final String FRAGMENT_TAG = "map_fragment_tag";
+
     private static final String ARG_TITLE = "arg_title";
     private static final String ARG_LONGITUDE = "arg_longitude";
     private static final String ARG_LATITUDE = "arg_latitude";
@@ -98,4 +100,7 @@ public class GmapFragment extends Fragment implements OnMapReadyCallback {
             mClusterManager.addItem(offsetItem);
         }
 
+    public void moveCamera(){
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mLat, mLng), 10));
+    }
 }
