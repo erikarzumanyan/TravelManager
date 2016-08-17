@@ -39,6 +39,13 @@
                 android:textSize="28sp"
                 android:text="Title"/>
 
+            <TextView
+                android:id="@+id/text_view_category_eat_fragment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="23sp"
+                android:text="Title"/>
+
         </LinearLayout>
 
     </LinearLayout>

@@ -9,8 +9,11 @@ public class Eat extends RealmObject {
 
     private String mName;
     private String mAbout;
+    private String mCategory;
 
     private String mPhotoUrl;
+    private String mPhoto1Url;
+    private String mPhoto2Url;
 
     private double mLongitude;
     private double mLatitude;
@@ -79,5 +82,29 @@ public class Eat extends RealmObject {
 
     public void setPhotoUrl(String pPhotoUrl) {
         mPhotoUrl = pPhotoUrl;
+    }
+
+    public String getPhoto1Url() {
+        return mPhoto1Url;
+    }
+
+    public void setPhoto1Url(String pPhoto1Url) {
+        mPhoto1Url = pPhoto1Url;
+    }
+
+    public String getPhoto2Url() {
+        return mPhoto2Url;
+    }
+
+    public void setPhoto2Url(String pPhoto2Url) {
+        mPhoto2Url = pPhoto2Url;
+    }
+
+    public String getCategory() {
+        return mCategory;
+    }
+
+    public void setCategory(String pCategory) {
+        mCategory = pCategory;
     }
 }

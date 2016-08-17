@@ -4,25 +4,32 @@ import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.daimajia.slider.library.SliderLayout;
 import com.daimajia.slider.library.SliderTypes.BaseSliderView;
 import com.daimajia.slider.library.SliderTypes.TextSliderView;
+import com.daimajia.slider.library.Tricks.ViewPagerEx;
+import com.squareup.picasso.Picasso;
 import com.uniquemiban.travelmanager.R;
 import com.uniquemiban.travelmanager.map.GmapFragment;
 import com.uniquemiban.travelmanager.models.Eat;
+import com.uniquemiban.travelmanager.models.Sight;
 import com.uniquemiban.travelmanager.start.NavigationDrawerActivity;
 
 
 import java.util.ArrayList;
+import java.util.Random;
 
 import io.realm.Realm;
 
@@ -32,10 +39,11 @@ public class EatFragment extends Fragment {
     public static final String FRAGMENT_TAG = "eat_fragment";
     private static final String KEY_ID = "eat_fragment_key_id";
 
-    private static final String MAP_TAG = "map_tag";
-
-
     private Eat mEat;
+
+    private SliderLayout mSliderShow;
+    private Random mRandom;
+    private ViewPagerEx.OnPageChangeListener mOnPageChangeListener;
 
     public static EatFragment newInstance(String pId){
      EatFragment fragment = new EatFragment();
@@ -48,7 +56,23 @@ public class EatFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mRandom = new Random();
+        mOnPageChangeListener = new ViewPagerEx.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                setTransition(mRandom.nextInt(4));
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                setTransition(mRandom.nextInt(4));
+            }
+        };
         String id = getArguments().getString(KEY_ID);
         mEat = Realm.getDefaultInstance().where(Eat.class).equalTo("mId", id).findFirst();
     }
@@ -59,46 +83,88 @@ public class EatFragment extends Fragment {
         final View v = inflater.inflate(R.layout.fragment_eat, container, false);
 
         setHasOptionsMenu(true);
-        ActionBar bar = ((NavigationDrawerActivity)getActivity()).getSupportActionBar();
+
+        NavigationDrawerActivity activity = ((NavigationDrawerActivity)getActivity());
+
+        ActionBar bar = activity.getSupportActionBar();
+        bar.setDisplayShowCustomEnabled(false);
+        bar.setDisplayHomeAsUpEnabled(true);
         bar.show();
-        bar.setDefaultDisplayHomeAsUpEnabled(true);
+
+        Toolbar toolbar = activity.getToolbar();
+
+        toolbar.setTitle(mEat.getName());
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View pView) {
+                getActivity().onBackPressed();
+            }
+        });
 
         if(mEat != null){
 
-            SliderLayout sliderShow = (SliderLayout) v.findViewById(R.id.slider_eat_fragment);
+            mSliderShow = (SliderLayout) v.findViewById(R.id.slider_eat_fragment);
+            mSliderShow.stopAutoCycle();
+
             ArrayList<String> list = new ArrayList<>();
             list.add(mEat.getPhotoUrl());
-
+            list.add(mEat.getPhoto1Url());
+            list.add(mEat.getPhoto2Url());
 
             for (String url : list) {
                 TextSliderView textSliderView = new TextSliderView(getActivity());
                 textSliderView
-                        .image(url)
                         .description("Location: " + mEat.getLocation())
-                        .setScaleType(BaseSliderView.ScaleType.CenterCrop);
+                        .image(url)
+                        .setScaleType(BaseSliderView.ScaleType.CenterCrop)
+                        .setPicasso(Picasso.with(getActivity().getApplicationContext()));
 
+                mSliderShow.setDuration(5000);
+                mSliderShow.setSliderTransformDuration(2000, null);
+                mSliderShow.addSlider(textSliderView);
 
-                sliderShow.addSlider(textSliderView);
+                setTransition(mRandom.nextInt(4));
             }
-            sliderShow.setDuration(6000);
-            sliderShow.setPresetTransformer(SliderLayout.Transformer.Fade);
 
             ((TextView)v.findViewById(R.id.text_view_name_eat_fragment)).setText(mEat.getName());
 
             ((TextView)v.findViewById(R.id.text_view_about_eat_fragment)).setText(mEat.getAbout());
-
+            ((TextView)v.findViewById(R.id.text_view_category_eat_fragment)).setText(mEat.getCategory());
 
         }
-
-
 
         return v;
     }
 
+    private void setTransition(int pT){
+        switch (pT){
+            case 0:
+                mSliderShow.setPresetTransformer(SliderLayout.Transformer.ZoomOut);
+                break;
+            case 1:
+                mSliderShow.setPresetTransformer(SliderLayout.Transformer.Stack);
+                break;
+            case 2:
+                mSliderShow.setPresetTransformer(SliderLayout.Transformer.Background2Foreground);
+                break;
+            case 3:
+                mSliderShow.setPresetTransformer(SliderLayout.Transformer.Foreground2Background);
+                break;
+        }
+    }
+
     @Override
-    public void onDestroy() {
-        ((NavigationDrawerActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-        super.onDestroy();
+    public void onStart() {
+        super.onStart();
+        mSliderShow.addOnPageChangeListener(mOnPageChangeListener);
+        mSliderShow.startAutoCycle();
+    }
+
+    @Override
+    public void onStop() {
+        mSliderShow.stopAutoCycle();
+        mSliderShow.removeOnPageChangeListener(mOnPageChangeListener);
+        super.onStop();
     }
 
     @Override
@@ -119,13 +185,20 @@ public class EatFragment extends Fragment {
                     .commit();
         }
         else if(id == R.id.action_location_search){
-            GmapFragment fragment = GmapFragment.newInstance(mEat.getName(), mEat.getLongitude(), mEat.getLatitude());
-
             FragmentManager manager = ((NavigationDrawerActivity)getActivity()).getSupportFragmentManager();
-            manager.beginTransaction()
-                    .add(R.id.fragment_container, fragment, MAP_TAG)
-                    .addToBackStack(MAP_TAG)
-                    .commit();
+
+            Fragment fragment = manager.findFragmentByTag(GmapFragment.FRAGMENT_TAG);
+            if(fragment == null){
+                fragment = GmapFragment.newInstance(mEat.getName(), mEat.getLongitude(), mEat.getLatitude());
+
+                manager.beginTransaction()
+                        .add(R.id.fragment_container, fragment, GmapFragment.FRAGMENT_TAG)
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                        .addToBackStack(GmapFragment.FRAGMENT_TAG)
+                        .commit();
+            } else {
+                ((GmapFragment)fragment).moveCamera();
+            }
             return false;
         }
         return super.onOptionsItemSelected(item);
