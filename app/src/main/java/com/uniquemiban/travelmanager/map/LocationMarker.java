@@ -1,4 +1,5 @@
 package com.uniquemiban.travelmanager.map;
+
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.clustering.ClusterItem;
 
