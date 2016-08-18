@@ -402,6 +402,7 @@ public class EatListFragment extends Fragment {
                     .load(mEat.getPhotoUrl())
                     .resize(((NavigationDrawerActivity)getActivity()).getWidth(), 0)
                     .onlyScaleDown()
+                    .placeholder(R.drawable.placeholder)
                     .into(mPhotoImageView);
         }
     }

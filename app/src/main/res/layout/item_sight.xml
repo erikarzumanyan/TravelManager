@@ -22,7 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:scaleType="centerCrop"
-            android:src="@drawable/e"/>
+            android:src="@drawable/placeholder"/>
 
         <LinearLayout
             android:orientation="horizontal"
@@ -48,7 +48,6 @@
                     android:layout_alignBottom="@+id/image_view_sight"
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentStart="true"
-                    android:text="History and Culture"
                     android:gravity="center_horizontal"
                     android:textSize="20sp"/>
 
@@ -60,7 +59,6 @@
                     android:layout_alignBottom="@+id/image_view_sight"
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentStart="true"
-                    android:text="Lastiver"
                     android:gravity="center_horizontal"
                     android:textSize="30sp"/>
 
@@ -74,8 +72,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="@color/background_floating_material_light"
-                        android:textSize="15sp"
-                        android:text="Location: Armenia"/>
+                        android:textSize="15sp"/>
 
                     <TextView
                         android:id="@+id/text_view_distance"
@@ -84,14 +81,19 @@
                         android:textColor="@color/background_floating_material_light"
                         android:textSize="15sp"
                         android:layout_marginLeft="16dp"
-                        android:layout_marginStart="16dp"
-                        android:text="Distance: 50 km"/>
+                        android:layout_marginStart="16dp"/>
 
                 </LinearLayout>
 
             </LinearLayout>
 
         </LinearLayout>
+
+        <ProgressBar
+            android:layout_centerInParent="true"
+            android:id="@+id/progress_bar_item_sight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
 
     </RelativeLayout>
 

@@ -2,6 +2,7 @@ package com.uniquemiban.travelmanager.sight;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -23,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,6 +36,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 import com.uniquemiban.travelmanager.utils.Constants;
 import com.uniquemiban.travelmanager.start.NavigationDrawerActivity;
@@ -45,6 +49,7 @@ import java.util.List;
 
 import io.realm.Case;
 import io.realm.Realm;
+import io.realm.RealmQuery;
 import io.realm.RealmResults;
 
 public class SightsListFragment extends Fragment {
@@ -73,6 +78,9 @@ public class SightsListFragment extends Fragment {
 
     private ChildEventListener mChildEventListener;
 
+    private String mSearchByName = null;
+    private String mSearch = null;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,6 +99,10 @@ public class SightsListFragment extends Fragment {
             public void onChildAdded(DataSnapshot pDataSnapshot, String pS) {
 
                 final Sight s = pDataSnapshot.getValue(Sight.class);
+
+                if(!TextUtils.isEmpty(mSearch) && !s.getName().contains(mSearch)
+                        && !s.getCategory().contains(mSearch) && !s.getLocation().contains(mSearch))
+                    return;
 
                 if (TextUtils.isEmpty(s.getId())) {
                     String id = pDataSnapshot.getKey();
@@ -117,6 +129,9 @@ public class SightsListFragment extends Fragment {
             public void onChildChanged(DataSnapshot pDataSnapshot, String pS) {
                 final Sight s = pDataSnapshot.getValue(Sight.class);
 
+                if(!TextUtils.isEmpty(mSearchByName) && !s.getName().contains(mSearchByName))
+                    return;
+
                 mRealm = Realm.getDefaultInstance();
 
                 mRealm.executeTransactionAsync(new Realm.Transaction() {
@@ -135,6 +150,9 @@ public class SightsListFragment extends Fragment {
             @Override
             public void onChildRemoved(DataSnapshot pDataSnapshot) {
                 final Sight s = pDataSnapshot.getValue(Sight.class);
+
+                if(!TextUtils.isEmpty(mSearchByName) && !s.getName().contains(mSearchByName))
+                    return;
 
                 mRealm = Realm.getDefaultInstance();
 
@@ -337,6 +355,38 @@ public class SightsListFragment extends Fragment {
             mSightsList.add(s);
         }
         mAdapter.notifyDataSetChanged();
+        mSearchByName = pQuery;
+        mQuery.removeEventListener(mChildEventListener);
+        if(!mSightsList.isEmpty())
+            mQuery = mRef.orderByKey().startAt(mSightsList.get(mSightsList.size() - 1).getId()).limitToFirst(LOADING_ITEMS_NUMBER);
+        else
+            mQuery = mRef.orderByKey().limitToFirst(LOADING_ITEMS_NUMBER);
+
+        mQuery.addChildEventListener(mChildEventListener);
+    }
+
+    public void  searchItems(String pQuery){
+        RealmQuery<Sight> realmQuery = mRealm.where(Sight.class).contains("mName", pQuery, Case.INSENSITIVE);
+        realmQuery = realmQuery.or().contains("mCategory", pQuery, Case.INSENSITIVE);
+        realmQuery = realmQuery.or().contains("mLocation", pQuery, Case.INSENSITIVE);
+
+        RealmResults<Sight> results = realmQuery.findAll();
+        mSightsList.clear();
+        for (Sight s: results){
+            mSightsList.add(s);
+        }
+
+        mAdapter.notifyDataSetChanged();
+
+        mSearch = pQuery;
+
+        mQuery.removeEventListener(mChildEventListener);
+        if(!mSightsList.isEmpty())
+            mQuery = mRef.orderByKey().startAt(mSightsList.get(mSightsList.size() - 1).getId()).limitToFirst(LOADING_ITEMS_NUMBER);
+        else
+            mQuery = mRef.orderByKey().limitToFirst(LOADING_ITEMS_NUMBER);
+
+        mQuery.addChildEventListener(mChildEventListener);
     }
 
     @Override
@@ -344,6 +394,33 @@ public class SightsListFragment extends Fragment {
         super.onStop();
         mRealm.close();
         mQuery.removeEventListener(mChildEventListener);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        inflater.inflate(R.menu.items_list, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if(id == R.id.action_search){
+            ((SearchView) item.getActionView()).setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    searchItems(query);
+                    return false;
+                }
+
+                @Override
+                public boolean onQueryTextChange(String newText) {
+                    searchItems(newText);
+                    return false;
+                }
+            });
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private class SightHolder extends RecyclerView.ViewHolder {
@@ -356,6 +433,8 @@ public class SightsListFragment extends Fragment {
         public TextView mLocationTextView;
         public TextView mDistanceTextView;
 
+        public ProgressBar mProgressBar;
+
         public SightHolder(View itemView) {
             super(itemView);
 
@@ -365,6 +444,8 @@ public class SightsListFragment extends Fragment {
             mNameTextView = (TextView) itemView.findViewById(R.id.text_view_name);
             mLocationTextView = (TextView) itemView.findViewById(R.id.text_view_location);
             mDistanceTextView = (TextView) itemView.findViewById(R.id.text_view_distance);
+
+            mProgressBar = (ProgressBar)itemView.findViewById(R.id.progress_bar_item_sight);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -400,11 +481,25 @@ public class SightsListFragment extends Fragment {
 
             mDistanceTextView.setText("Distance: N/A");
 
+            mProgressBar.setVisibility(View.VISIBLE);
+
             Picasso.with(getActivity().getApplicationContext())
                     .load(mSight.getPhotoUrl())
                     .resize(((NavigationDrawerActivity)getActivity()).getWidth(), 0)
                     .onlyScaleDown()
-                    .into(mPhotoImageView);
+                    .placeholder(R.drawable.placeholder)
+                    .into(mPhotoImageView, new Callback() {
+                        @Override
+                        public void onSuccess() {
+                            mProgressBar.setVisibility(View.GONE);
+                        }
+
+                        @Override
+                        public void onError() {
+                            Toast.makeText(getActivity(), "Download error", Toast.LENGTH_SHORT).show();
+                            mProgressBar.setVisibility(View.GONE);
+                        }
+                    });
         }
     }
 
@@ -439,32 +534,5 @@ public class SightsListFragment extends Fragment {
             return mSights.size();
         }
 
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        menu.clear();
-        inflater.inflate(R.menu.items_list, menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if(id == R.id.action_search){
-            ((SearchView) item.getActionView()).setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-                @Override
-                public boolean onQueryTextSubmit(String query) {
-                    searchItemsByName(query);
-                    return false;
-                }
-
-                @Override
-                public boolean onQueryTextChange(String newText) {
-                    searchItemsByName(newText);
-                    return false;
-                }
-            });
-        }
-        return super.onOptionsItemSelected(item);
     }
 }
