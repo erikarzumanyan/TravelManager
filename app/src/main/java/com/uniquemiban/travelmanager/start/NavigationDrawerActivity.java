@@ -19,6 +19,8 @@ import android.view.View;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.uniquemiban.travelmanager.eat.EatListFragment;
+import com.uniquemiban.travelmanager.sleep.SleepListFragment;
+import com.uniquemiban.travelmanager.tour.TourListFragment;
 import com.uniquemiban.travelmanager.utils.Constants;
 import com.uniquemiban.travelmanager.R;
 import com.uniquemiban.travelmanager.login.LoginActivity;
@@ -141,6 +143,16 @@ public class NavigationDrawerActivity extends AppCompatActivity
             }
 
         } else if (id == R.id.nav_sleeping) {
+            Fragment fragment = manager.findFragmentByTag(SleepListFragment.FRAGMENT_TAG);
+
+            if(fragment == null) {
+                fragment = new SleepListFragment();
+                manager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                manager.beginTransaction()
+                        .replace(R.id.fragment_container, fragment, SleepListFragment.FRAGMENT_TAG)
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                        .commit();
+            }
 
         } else if (id == R.id.nav_eating) {
 
@@ -156,6 +168,16 @@ public class NavigationDrawerActivity extends AppCompatActivity
             }
 
         } else if (id == R.id.nav_tours) {
+            Fragment fragment = manager.findFragmentByTag(TourListFragment.FRAGMENT_TAG);
+
+            if(fragment == null) {
+                fragment = new TourListFragment();
+                manager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                manager.beginTransaction()
+                        .replace(R.id.fragment_container, fragment, TourListFragment.FRAGMENT_TAG)
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                        .commit();
+            }
 
         } else if (id == R.id.nav_map) {
 

@@ -24,7 +24,7 @@ public class LoginActivity extends AppCompatActivity {
     public static final String SHARED_SKIP = "shared_skip";
 
     private EditText mEmailEditText;
-    private EditText mPasswordEditText;
+    private EditText mPasswordEditText; 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
