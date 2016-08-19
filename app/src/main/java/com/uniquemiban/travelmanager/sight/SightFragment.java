@@ -2,6 +2,7 @@ package com.uniquemiban.travelmanager.sight;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -20,9 +21,17 @@ import android.widget.TextView;
 
 import com.daimajia.slider.library.SliderLayout;
 import com.daimajia.slider.library.SliderTypes.BaseSliderView;
+import com.daimajia.slider.library.SliderTypes.DefaultSliderView;
 import com.daimajia.slider.library.SliderTypes.TextSliderView;
 import com.daimajia.slider.library.Tricks.ViewPagerEx;
 import com.squareup.picasso.Picasso;
+import com.survivingwithandroid.weather.lib.WeatherClient;
+import com.survivingwithandroid.weather.lib.WeatherConfig;
+import com.survivingwithandroid.weather.lib.exception.WeatherLibException;
+import com.survivingwithandroid.weather.lib.exception.WeatherProviderInstantiationException;
+import com.survivingwithandroid.weather.lib.model.CurrentWeather;
+import com.survivingwithandroid.weather.lib.provider.openweathermap.OpenweathermapProviderType;
+import com.survivingwithandroid.weather.lib.request.WeatherRequest;
 import com.uniquemiban.travelmanager.start.NavigationDrawerActivity;
 import com.uniquemiban.travelmanager.R;
 import com.uniquemiban.travelmanager.weather.WeatherFragment;
@@ -44,8 +53,8 @@ public class SightFragment extends Fragment{
     private Sight mSight;
 
     private SliderLayout mSliderShow;
-    private Random mRandom;
-    private ViewPagerEx.OnPageChangeListener mOnPageChangeListener;
+
+    private WeatherClient mClient;
 
     public static SightFragment newInstance(String pId){
         SightFragment fragment = new SightFragment();
@@ -58,23 +67,21 @@ public class SightFragment extends Fragment{
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mRandom = new Random();
-        mOnPageChangeListener = new ViewPagerEx.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
-            }
+        WeatherClient.ClientBuilder builder = new WeatherClient.ClientBuilder();
+        WeatherConfig config = new WeatherConfig();
+        config.ApiKey = getResources().getString(R.string.forecastio_key);
 
-            @Override
-            public void onPageSelected(int position) {
-                setTransition(mRandom.nextInt(4));
-            }
+        try {
+            mClient = builder.attach(getActivity())
+                    .provider(new OpenweathermapProviderType())
+                    .httpClient(com.survivingwithandroid.weather.lib.client.volley.WeatherClientDefault.class)
+                    .config(config)
+                    .build();
+        } catch (WeatherProviderInstantiationException pE) {
+            pE.printStackTrace();
+        }
 
-            @Override
-            public void onPageScrollStateChanged(int state) {
-                setTransition(mRandom.nextInt(4));
-            }
-        };
         String id = getArguments().getString(KEY_ID);
         mSight = Realm.getDefaultInstance().where(Sight.class).equalTo("mId", id).findFirst();
     }
@@ -114,9 +121,8 @@ public class SightFragment extends Fragment{
             list.add(mSight.getPhoto2Url());
 
             for (String url : list) {
-                TextSliderView textSliderView = new TextSliderView(getActivity());
+                DefaultSliderView textSliderView = new DefaultSliderView(getActivity());
                 textSliderView
-                        .description("Location: " + mSight.getLocation())
                         .image(url)
                         .setScaleType(BaseSliderView.ScaleType.CenterCrop)
                         .setPicasso(Picasso.with(getActivity().getApplicationContext()));
@@ -124,8 +130,7 @@ public class SightFragment extends Fragment{
                 mSliderShow.setDuration(5000);
                 mSliderShow.setSliderTransformDuration(2000, null);
                 mSliderShow.addSlider(textSliderView);
-
-                setTransition(mRandom.nextInt(4));
+                mSliderShow.setPresetTransformer(SliderLayout.Transformer.Stack);
             }
 
             ((TextView)v.findViewById(R.id.text_view_name_sight_fragment)).setText(mSight.getName());
@@ -133,49 +138,45 @@ public class SightFragment extends Fragment{
             ((TextView)v.findViewById(R.id.text_view_about_sight_fragment)).setText(mSight.getAbout());
             ((TextView)v.findViewById(R.id.text_view_category_sight_fragment)).setText(mSight.getCategory());
 
+
+            try{
+                mClient.getCurrentCondition(new WeatherRequest(mSight.getLongitude(), mSight.getLatitude()), new WeatherClient.WeatherEventListener() {
+                    @Override
+                    public void onWeatherError(WeatherLibException wle) {
+
+                    }
+
+                    @Override
+                    public void onConnectionError(Throwable t) {
+                        Snackbar.make(getView(), "Connection Error", Snackbar.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    public void onWeatherRetrieved(final CurrentWeather weather) {
+                        ((TextView) v.findViewById(R.id.text_view_weather_sight_fragment)).setText("" + (int) weather.weather.temperature.getTemp() + "°C");
+                    }
+
+                });
+            } catch (NullPointerException e){
+
+            }
+
         }
 
         final ImageView fav = (ImageView)v.findViewById(R.id.image_view_fav_sight_fragment);
 
-        fav.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View pView) {
-                fav.setImageResource(R.drawable.fav_rem);
-                ((TextView)v.findViewById(R.id.text_view_fav_count_sight_fragment)).setText("1");
-            }
-        });
-
         return v;
-    }
-
-    private void setTransition(int pT){
-        switch (pT){
-            case 0:
-                mSliderShow.setPresetTransformer(SliderLayout.Transformer.Stack);
-                break;
-            case 1:
-                mSliderShow.setPresetTransformer(SliderLayout.Transformer.ZoomOutSlide);
-                break;
-            case 2:
-                mSliderShow.setPresetTransformer(SliderLayout.Transformer.Background2Foreground);
-                break;
-            case 3:
-                mSliderShow.setPresetTransformer(SliderLayout.Transformer.ZoomOutSlide);
-                break;
-        }
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        mSliderShow.addOnPageChangeListener(mOnPageChangeListener);
         mSliderShow.startAutoCycle();
     }
 
     @Override
     public void onStop() {
         mSliderShow.stopAutoCycle();
-        mSliderShow.removeOnPageChangeListener(mOnPageChangeListener);
         super.onStop();
     }
 
