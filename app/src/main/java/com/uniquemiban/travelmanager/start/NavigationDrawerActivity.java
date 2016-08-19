@@ -75,7 +75,7 @@ public class NavigationDrawerActivity extends AppCompatActivity
         FragmentManager manager = getSupportFragmentManager();
         SightsListFragment fragment = new SightsListFragment();
         manager.beginTransaction()
-                .add(R.id.fragment_container, fragment, SightsListFragment.FRAGMENT_TAG)
+                .replace(R.id.fragment_container, fragment, SightsListFragment.FRAGMENT_TAG)
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                 .commit();
     }

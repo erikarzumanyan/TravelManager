@@ -151,16 +151,16 @@ public class SightFragment extends Fragment{
     private void setTransition(int pT){
         switch (pT){
             case 0:
-                mSliderShow.setPresetTransformer(SliderLayout.Transformer.ZoomOut);
+                mSliderShow.setPresetTransformer(SliderLayout.Transformer.Stack);
                 break;
             case 1:
-                mSliderShow.setPresetTransformer(SliderLayout.Transformer.Stack);
+                mSliderShow.setPresetTransformer(SliderLayout.Transformer.ZoomOutSlide);
                 break;
             case 2:
                 mSliderShow.setPresetTransformer(SliderLayout.Transformer.Background2Foreground);
                 break;
             case 3:
-                mSliderShow.setPresetTransformer(SliderLayout.Transformer.Foreground2Background);
+                mSliderShow.setPresetTransformer(SliderLayout.Transformer.ZoomOutSlide);
                 break;
         }
     }

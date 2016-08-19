@@ -378,7 +378,7 @@ public class EatListFragment extends Fragment {
                         if (fragment == null) {
                             fragment = EatFragment.newInstance(mEat.getId());
                             manager.beginTransaction()
-                                    .add(R.id.fragment_container, fragment, SightFragment.FRAGMENT_TAG)
+                                    .replace(R.id.fragment_container, fragment, EatFragment.FRAGMENT_TAG)
                                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                                     .addToBackStack(SightFragment.FRAGMENT_TAG)
                                     .commit();

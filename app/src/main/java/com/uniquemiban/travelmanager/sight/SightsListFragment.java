@@ -56,6 +56,7 @@ public class SightsListFragment extends Fragment {
 
     public static final String FRAGMENT_TAG = "sights_list_fragment";
     private static final int LOADING_ITEMS_NUMBER = 5;
+    private String mLastItemId = null;
 
     private static final int HIDE_THRESHOLD = 20;
     private int scrolledDistance = 0;
@@ -63,8 +64,6 @@ public class SightsListFragment extends Fragment {
 
     private boolean mLoading = true;
     int mFirstVisibleItemPosition, mVisibleItemCount, mTotalItemCount;
-
-    private int mCount = 0;
 
     private List<Sight> mSightsList;
     private RecyclerView mSightsRecyclerView;
@@ -101,36 +100,37 @@ public class SightsListFragment extends Fragment {
                 final Sight s = pDataSnapshot.getValue(Sight.class);
 
                 if(!TextUtils.isEmpty(mSearch) && !s.getName().contains(mSearch)
-                        && !s.getCategory().contains(mSearch) && !s.getLocation().contains(mSearch))
-                    return;
+                        && !s.getCategory().contains(mSearch) && !s.getLocation().contains(mSearch)) {
+                    mQuery.removeEventListener(mChildEventListener);
+                    mLastItemId = s.getId();
+                    mQuery = mRef.orderByKey().startAt(mLastItemId).limitToFirst(LOADING_ITEMS_NUMBER);
+                    mQuery.addChildEventListener(mChildEventListener);
+                } else{
+                    if (TextUtils.isEmpty(s.getId())) {
+                        String id = pDataSnapshot.getKey();
+                        s.setId(id);
+                        mRef.child(id).child("id").setValue(id);
+                    } else {
+                        mRealm = Realm.getDefaultInstance();
 
-                if (TextUtils.isEmpty(s.getId())) {
-                    String id = pDataSnapshot.getKey();
-                    s.setId(id);
-                    mRef.child(id).child("id").setValue(id);
-                } else {
-                    mRealm = Realm.getDefaultInstance();
-
-                    mRealm.executeTransactionAsync(new Realm.Transaction() {
-                        @Override
-                        public void execute(Realm realm) {
-                            realm.copyToRealmOrUpdate(s);
-                        }
-                    }, new Realm.Transaction.OnSuccess() {
-                        @Override
-                        public void onSuccess() {
-                            updateUI(s);
-                        }
-                    });
+                        mRealm.executeTransactionAsync(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                realm.copyToRealmOrUpdate(s);
+                            }
+                        }, new Realm.Transaction.OnSuccess() {
+                            @Override
+                            public void onSuccess() {
+                                updateUI(s);
+                            }
+                        });
+                    }
                 }
             }
 
             @Override
             public void onChildChanged(DataSnapshot pDataSnapshot, String pS) {
                 final Sight s = pDataSnapshot.getValue(Sight.class);
-
-                if(!TextUtils.isEmpty(mSearchByName) && !s.getName().contains(mSearchByName))
-                    return;
 
                 mRealm = Realm.getDefaultInstance();
 
@@ -271,7 +271,7 @@ public class SightsListFragment extends Fragment {
         if (mRealm.isClosed())
             mRealm = Realm.getDefaultInstance();
 
-        mQuery = mRef.limitToFirst(mCount = mCount + LOADING_ITEMS_NUMBER);
+        mQuery = mRef.orderByKey().limitToFirst(LOADING_ITEMS_NUMBER);
         mQuery.addChildEventListener(mChildEventListener);
 
         final ActionBar bar = ((NavigationDrawerActivity)getActivity()).getSupportActionBar();
@@ -355,8 +355,11 @@ public class SightsListFragment extends Fragment {
             mSightsList.add(s);
         }
         mAdapter.notifyDataSetChanged();
-        mSearchByName = pQuery;
+
+        mSearch = pQuery;
+
         mQuery.removeEventListener(mChildEventListener);
+
         if(!mSightsList.isEmpty())
             mQuery = mRef.orderByKey().startAt(mSightsList.get(mSightsList.size() - 1).getId()).limitToFirst(LOADING_ITEMS_NUMBER);
         else
@@ -380,13 +383,15 @@ public class SightsListFragment extends Fragment {
 
         mSearch = pQuery;
 
-        mQuery.removeEventListener(mChildEventListener);
-        if(!mSightsList.isEmpty())
-            mQuery = mRef.orderByKey().startAt(mSightsList.get(mSightsList.size() - 1).getId()).limitToFirst(LOADING_ITEMS_NUMBER);
-        else
-            mQuery = mRef.orderByKey().limitToFirst(LOADING_ITEMS_NUMBER);
+        //mQuery.removeEventListener(mChildEventListener);
+//        if(!mSightsList.isEmpty())
+//            mQuery = mRef.orderByKey().startAt(mSightsList.get(mSightsList.size() - 1).getId()).limitToFirst(LOADING_ITEMS_NUMBER);
+//        else
+//            mQuery = mRef.orderByKey().limitToFirst(LOADING_ITEMS_NUMBER);
 
-        mQuery.addChildEventListener(mChildEventListener);
+        //mQuery.addChildEventListener(mChildEventListener);
+
+        mRef.addChildEventListener(mChildEventListener);
     }
 
     @Override
