@@ -1,68 +1,201 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                    xmlns:tools="http://schemas.android.com/tools"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
 
 
-        <ImageView
-            android:id="@+id/sigthImage"
-            android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:scaleType="centerCrop"
-            android:src="@drawable/e"/>
+    <ImageView
+        android:id="@+id/sigthImage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:scaleType="centerCrop"
+        android:src="@drawable/e"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#96000000"
+        android:orientation="vertical" android:layout_above="@+id/linearLayout"
+        android:layout_alignParentStart="true">
+
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/sigthImage"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:background="#a41797ff"
-            android:orientation="vertical">
-
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/temperatureText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentStart="true"
-                    android:layout_alignParentTop="true"
-                    android:layout_marginLeft="5dp"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:textColor="#FFFFFF"
-                    android:textSize="40sp"/>
-
-                <ImageView
-                    android:id="@+id/descriptionLogo"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_alignParentTop="true"
-                    android:layout_toEndOf="@+id/temperatureText"
-                    android:layout_toRightOf="@+id/temperatureText"
-                    android:src="@mipmap/cloudy"/>
-            </LinearLayout>
+            android:orientation="horizontal" android:gravity="center_vertical|center_horizontal">
 
             <TextView
-                android:id="@+id/descriptionText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Now "
+                android:id="@+id/textView9" android:textColor="#ffffff" android:textSize="30sp"
+                android:textIsSelectable="false" android:layout_marginRight="3dp"/>
+            <TextView
+                android:id="@+id/temperatureText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
-                android:layout_below="@+id/temperatureText"
+                android:layout_alignParentTop="true"
                 android:layout_marginLeft="5dp"
-                android:text="Loading..."
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textColor="#FFFFFF"/>
+                android:textColor="#FFFFFF"
+                android:textSize="40sp"/>
+
+            <ImageView
+                android:id="@+id/descriptionLogo"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentTop="true"
+                android:layout_toEndOf="@+id/temperatureText"
+                android:layout_toRightOf="@+id/temperatureText"
+                android:src="@mipmap/cloudy"/>
         </LinearLayout>
 
-    </RelativeLayout>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#96000000"
+
+        android:orientation="horizontal" android:weightSum="2" android:layout_weight="1"
+        android:baselineAligned="false" android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true" android:id="@+id/linearLayout"
+        android:gravity="center_vertical">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal" android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_vertical|center_horizontal">
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginTop="5dp" android:layout_weight="1" android:text="Monday"
+                android:textAppearance="?android:attr/textAppearanceMedium" android:textColor="#ffffff"
+                android:textSize="25sp"/>
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginTop="5dp" android:layout_weight="1" android:text="Tuesday"
+                android:textAppearance="?android:attr/textAppearanceMedium" android:textColor="#ffffff"
+                android:textSize="25sp"/>
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginTop="5dp" android:layout_weight="1" android:text="Wednsday"
+                android:textAppearance="?android:attr/textAppearanceMedium" android:textColor="#ffffff"
+                android:textSize="25sp"/>
+            <TextView
+                android:id="@+id/textView4"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginTop="5dp" android:layout_weight="1" android:text="Thursday"
+                android:textAppearance="?android:attr/textAppearanceMedium" android:textColor="#ffffff"
+                android:textSize="25sp"/>
+            <TextView
+                android:id="@+id/textView6"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginTop="5dp" android:layout_weight="1" android:text="Friday"
+                android:textAppearance="?android:attr/textAppearanceMedium" android:textColor="#ffffff"
+                android:textSize="25sp"/>
+            <TextView
+                android:id="@+id/textView7"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginTop="5dp" android:layout_weight="1" android:text="Saturday"
+                android:textAppearance="?android:attr/textAppearanceMedium" android:textColor="#ffffff"
+                android:textSize="25sp"/>
+            <TextView
+                android:id="@+id/textView8"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginTop="5dp" android:layout_weight="1" android:text="Sunday"
+                android:textAppearance="?android:attr/textAppearanceMedium" android:textColor="#ffffff"
+                android:textSize="25sp"/>
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical|center_horizontal">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/icon_monday"/>
+            <ImageView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                       android:id="@+id/icon_thuesday"/>
+            <ImageView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                       android:id="@+id/icon_wednsday"/>
+            <ImageView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                       android:id="@+id/icon_thursday"/>
+            <ImageView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                       android:id="@+id/icon_friday"/>
+            <ImageView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                       android:id="@+id/icon_saturday"/>
+            <ImageView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                       android:id="@+id/icon_sunday"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal" android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_vertical|center_horizontal">
+            <TextView
+                android:id="@+id/tempMonday"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="°C" android:textAppearance="?android:attr/textAppearanceMedium" android:textColor="#ffffff"
+                android:textSize="25sp"/>
+            <TextView android:id="@+id/tempTuesday" android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1" android:text="°C"
+                      android:textAppearance="?android:attr/textAppearanceMedium" android:textColor="#ffffff"
+                      android:textSize="25sp"/>
+            <TextView android:id="@+id/tempThursday" android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1" android:text="°C"
+                      android:textAppearance="?android:attr/textAppearanceMedium" android:textColor="#ffffff"
+                      android:textSize="25sp"/>
+            <TextView android:id="@+id/tempFriday" android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1" android:text="°C"
+                      android:textAppearance="?android:attr/textAppearanceMedium" android:textColor="#ffffff"
+                      android:textSize="25sp"/>
+            <TextView android:id="@+id/tempWednsday" android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1" android:text="°C"
+                      android:textAppearance="?android:attr/textAppearanceMedium" android:textColor="#ffffff"
+                      android:textSize="25sp"/>
+            <TextView android:id="@+id/tempSaturday" android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1" android:text="°C"
+                      android:textAppearance="?android:attr/textAppearanceMedium" android:textColor="#ffffff"
+                      android:textSize="25sp"/>
+            <TextView android:id="@+id/tempSunday" android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1" android:text="°C"
+                      android:textAppearance="?android:attr/textAppearanceMedium" android:textColor="#ffffff"
+                      android:textSize="25sp"/>
+        </LinearLayout>
+    </LinearLayout>
+
+</RelativeLayout>
 

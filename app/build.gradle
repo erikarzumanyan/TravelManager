@@ -42,7 +42,7 @@ dependencies {
     compile 'com.squareup.picasso:picasso:2.5.2'
 
     /* Weather */
-    compile 'com.survivingwithandroid:weatherlib_volleyclient:1.6.0'
+    compile 'github.vatsal.easyweather:library:1.0.0'
 
     /* Google Map */
     compile 'com.google.android.gms:play-services-maps:9.2.0'
