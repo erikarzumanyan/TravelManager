@@ -54,8 +54,6 @@ public class SightFragment extends Fragment{
 
     private SliderLayout mSliderShow;
 
-    private WeatherClient mClient;
-
     public static SightFragment newInstance(String pId){
         SightFragment fragment = new SightFragment();
         Bundle bundle = new Bundle();
@@ -67,20 +65,6 @@ public class SightFragment extends Fragment{
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        WeatherClient.ClientBuilder builder = new WeatherClient.ClientBuilder();
-        WeatherConfig config = new WeatherConfig();
-        config.ApiKey = getResources().getString(R.string.forecastio_key);
-
-        try {
-            mClient = builder.attach(getActivity())
-                    .provider(new OpenweathermapProviderType())
-                    .httpClient(com.survivingwithandroid.weather.lib.client.volley.WeatherClientDefault.class)
-                    .config(config)
-                    .build();
-        } catch (WeatherProviderInstantiationException pE) {
-            pE.printStackTrace();
-        }
 
         String id = getArguments().getString(KEY_ID);
         mSight = Realm.getDefaultInstance().where(Sight.class).equalTo("mId", id).findFirst();
@@ -138,28 +122,6 @@ public class SightFragment extends Fragment{
             ((TextView)v.findViewById(R.id.text_view_about_sight_fragment)).setText(mSight.getAbout());
             ((TextView)v.findViewById(R.id.text_view_category_sight_fragment)).setText(mSight.getCategory());
 
-
-            try{
-                mClient.getCurrentCondition(new WeatherRequest(mSight.getLongitude(), mSight.getLatitude()), new WeatherClient.WeatherEventListener() {
-                    @Override
-                    public void onWeatherError(WeatherLibException wle) {
-
-                    }
-
-                    @Override
-                    public void onConnectionError(Throwable t) {
-                        Snackbar.make(getView(), "Connection Error", Snackbar.LENGTH_LONG).show();
-                    }
-
-                    @Override
-                    public void onWeatherRetrieved(final CurrentWeather weather) {
-                        ((TextView) v.findViewById(R.id.text_view_weather_sight_fragment)).setText("" + (int) weather.weather.temperature.getTemp() + "°C");
-                    }
-
-                });
-            } catch (NullPointerException e){
-
-            }
 
         }
 
