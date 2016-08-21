@@ -47,7 +47,7 @@ public class EatFragment extends Fragment {
     private Random mRandom;
     private ViewPagerEx.OnPageChangeListener mOnPageChangeListener;
 
-    private int mDown, mUp, mDist = 10;
+    private int mDown, mUp, mDist = 5;
 
     public static EatFragment newInstance(String pId){
      EatFragment fragment = new EatFragment();
@@ -105,7 +105,7 @@ public class EatFragment extends Fragment {
             }
         });
 
-        ((ParallaxScrollView)v.findViewById(R.id.parallax_scroll_view_fragment_eat)).setOnTouchListener(new View.OnTouchListener() {
+        v.findViewById(R.id.parallax_scroll_view_fragment_eat).setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View pView, MotionEvent pMotionEvent) {
                 switch (pMotionEvent.getAction()){
