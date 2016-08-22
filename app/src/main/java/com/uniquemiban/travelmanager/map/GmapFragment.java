@@ -29,6 +29,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.clustering.ClusterManager;
@@ -169,6 +170,7 @@ public class GmapFragment extends Fragment implements OnMapReadyCallback, Direct
         mMap.setMyLocationEnabled(true);
         LocationMarker offsetItem = new LocationMarker(mLat, mLng);
         mClusterManager.addItem(offsetItem);
+    //       mClusterManager.getMarkerCollection().addMarker(new MarkerOptions().position(offsetItem.getPosition()).icon(BitmapDescriptorFactory.fromResource(R.mipmap.cloudy)));
     }
 
 
