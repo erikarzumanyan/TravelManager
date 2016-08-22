@@ -25,15 +25,18 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.maps.android.SphericalUtil;
 import com.squareup.picasso.Picasso;
 import com.uniquemiban.travelmanager.R;
 import com.uniquemiban.travelmanager.models.Eat;
@@ -51,7 +54,12 @@ import io.realm.RealmResults;
 
 public class EatListFragment extends Fragment {
 
+    public static final String ARG_LONGITUDE = "eat_list_fragment_arg_longitude";
+    public static final String ARG_LATITUDE = "eat_list_fragment_arg_latitude";
+    public static final String ARG_RADIUS = "eat_list_fragment_arg_radius";
+
     public static final String FRAGMENT_TAG = "eat_list_fragment";
+    public static final String FRAGMENT_TAG_RADIUS = "eat_list_fragment_radius";
     private static final int LOADING_ITEMS_NUMBER = 5;
 
     private static final int HIDE_THRESHOLD = 20;
@@ -75,6 +83,23 @@ public class EatListFragment extends Fragment {
 
     private ChildEventListener mChildEventListener;
 
+    private double mLongitude = -1;
+    private double mLatitude = -1;
+    private double mRadius = -1;
+
+    private String mSearch = null;
+    private String mLastItemId = null;
+
+    public static EatListFragment newInstance(double pLongitude, double pLatitude, double pRadius){
+        EatListFragment fragment = new EatListFragment();
+        Bundle bundle = new Bundle();
+        bundle.putDouble(ARG_LONGITUDE, pLongitude);
+        bundle.putDouble(ARG_LATITUDE, pLatitude);
+        bundle.putDouble(ARG_RADIUS, pRadius);
+        fragment.setArguments(bundle);
+        return fragment;
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,9 +107,18 @@ public class EatListFragment extends Fragment {
         mRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_EATS).getRef();
         mRealm = Realm.getDefaultInstance();
 
+        if(getArguments() != null){
+            Bundle bundle = getArguments();
+            mLongitude = bundle.getDouble(ARG_LONGITUDE);
+            mLatitude = bundle.getDouble(ARG_LATITUDE);
+            mRadius = bundle.getDouble(ARG_RADIUS);
+        }
+
         RealmResults<Eat> results = mRealm.where(Eat.class).findAll();
         mEatList = new ArrayList<>();
         for (Eat eat : results) {
+            if(mRadius != -1 && SphericalUtil.computeDistanceBetween(new LatLng(mLatitude, mLongitude), new LatLng(eat.getLatitude(), eat.getLongitude())) > mRadius)
+                continue;
             mEatList.add(eat);
         }
 
@@ -94,24 +128,40 @@ public class EatListFragment extends Fragment {
 
                 final Eat e = pDataSnapshot.getValue(Eat.class);
 
-                if (TextUtils.isEmpty(e.getId())) {
-                    String id = pDataSnapshot.getKey();
-                    e.setId(id);
-                    mRef.child(id).child("id").setValue(id);
-                } else {
-                    mRealm = Realm.getDefaultInstance();
+                if(mRadius != -1 && SphericalUtil.computeDistanceBetween(new LatLng(mLatitude, mLongitude), new LatLng(e.getLatitude(), e.getLongitude())) > mRadius){
+                    return;
+                }
 
-                    mRealm.executeTransactionAsync(new Realm.Transaction() {
-                        @Override
-                        public void execute(Realm realm) {
-                            realm.copyToRealmOrUpdate(e);
-                        }
-                    }, new Realm.Transaction.OnSuccess() {
-                        @Override
-                        public void onSuccess() {
-                            updateUI(e);
-                        }
-                    });
+                if(!TextUtils.isEmpty(mSearch) && !e.getName().contains(mSearch)
+                        && !e.getCategory().contains(mSearch) && !e.getLocation().contains(mSearch)) {
+
+                    mQuery.removeEventListener(mChildEventListener);
+                    mLastItemId = e.getId();
+                    mQuery = mRef.orderByKey().startAt(mLastItemId).limitToFirst(LOADING_ITEMS_NUMBER);
+                    mQuery.addChildEventListener(mChildEventListener);
+
+                } else {
+
+                    if (TextUtils.isEmpty(e.getId())) {
+                        String id = pDataSnapshot.getKey();
+                        e.setId(id);
+                        mRef.child(id).child("id").setValue(id);
+                    } else {
+                        mRealm = Realm.getDefaultInstance();
+
+                        mRealm.executeTransactionAsync(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                realm.copyToRealmOrUpdate(e);
+                            }
+                        }, new Realm.Transaction.OnSuccess() {
+                            @Override
+                            public void onSuccess() {
+                                updateUI(e);
+                            }
+                        });
+                    }
+
                 }
             }
 
@@ -378,7 +428,7 @@ public class EatListFragment extends Fragment {
                         if (fragment == null) {
                             fragment = EatFragment.newInstance(mEat.getId());
                             manager.beginTransaction()
-                                    .add(R.id.fragment_container, fragment, SightFragment.FRAGMENT_TAG)
+                                    .replace(R.id.fragment_container, fragment, EatFragment.FRAGMENT_TAG)
                                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                                     .addToBackStack(SightFragment.FRAGMENT_TAG)
                                     .commit();
@@ -402,6 +452,7 @@ public class EatListFragment extends Fragment {
                     .load(mEat.getPhotoUrl())
                     .resize(((NavigationDrawerActivity)getActivity()).getWidth(), 0)
                     .onlyScaleDown()
+                    .placeholder(R.drawable.placeholder)
                     .into(mPhotoImageView);
         }
     }

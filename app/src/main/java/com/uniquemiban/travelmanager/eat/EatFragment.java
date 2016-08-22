@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -20,6 +21,7 @@ import com.daimajia.slider.library.SliderLayout;
 import com.daimajia.slider.library.SliderTypes.BaseSliderView;
 import com.daimajia.slider.library.SliderTypes.TextSliderView;
 import com.daimajia.slider.library.Tricks.ViewPagerEx;
+import com.nirhart.parallaxscroll.views.ParallaxScrollView;
 import com.squareup.picasso.Picasso;
 import com.uniquemiban.travelmanager.R;
 import com.uniquemiban.travelmanager.map.GmapFragment;
@@ -44,6 +46,8 @@ public class EatFragment extends Fragment {
     private SliderLayout mSliderShow;
     private Random mRandom;
     private ViewPagerEx.OnPageChangeListener mOnPageChangeListener;
+
+    private int mDown, mUp, mDist = 5;
 
     public static EatFragment newInstance(String pId){
      EatFragment fragment = new EatFragment();
@@ -86,18 +90,38 @@ public class EatFragment extends Fragment {
 
         NavigationDrawerActivity activity = ((NavigationDrawerActivity)getActivity());
 
-        ActionBar bar = activity.getSupportActionBar();
+        final ActionBar bar = activity.getSupportActionBar();
         bar.setDisplayShowCustomEnabled(false);
         bar.setDisplayHomeAsUpEnabled(true);
         bar.show();
 
-        Toolbar toolbar = activity.getToolbar();
+        final Toolbar toolbar = activity.getToolbar();
 
         toolbar.setTitle(mEat.getName());
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View pView) {
-                getActivity().onBackPressed();
+                ((NavigationDrawerActivity)getActivity()).onBackPressed();
+            }
+        });
+
+        v.findViewById(R.id.parallax_scroll_view_fragment_eat).setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View pView, MotionEvent pMotionEvent) {
+                switch (pMotionEvent.getAction()){
+                    case MotionEvent.ACTION_DOWN:
+                        mDown = (int)pMotionEvent.getY();
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        mUp = (int)pMotionEvent.getY();
+                        if(mUp - mDown < -mDist){
+                            bar.hide();
+                        } else if (mUp - mDown > mDist){
+                            bar.show();
+                        }
+                        break;
+                }
+                return false;
             }
         });
 
