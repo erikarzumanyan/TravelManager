@@ -161,6 +161,12 @@ public class NavigationDrawerActivity extends AppCompatActivity
 
         } else if (id == R.id.nav_share) {
 
+        } else if(id == R.id.nav_sign_in){
+            startActivity(new Intent(this, LoginActivity.class));
+            getSharedPreferences(Constants.SHARED_PREFS, MODE_PRIVATE).edit().putBoolean(LoginActivity.SHARED_SKIP, false).commit();
+        } else if (id == R.id.nav_sign_out){
+            FirebaseAuth.getInstance().signOut();
+            getSharedPreferences(Constants.SHARED_PREFS, MODE_PRIVATE).edit().putBoolean(LoginActivity.SHARED_SKIP, false).commit();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
