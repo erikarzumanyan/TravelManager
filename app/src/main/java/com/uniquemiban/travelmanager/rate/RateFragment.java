@@ -14,8 +14,6 @@ import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,7 +36,6 @@ import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 import com.uniquemiban.travelmanager.R;
 import com.uniquemiban.travelmanager.login.LoginActivity;
-import com.uniquemiban.travelmanager.models.Rate;
 import com.uniquemiban.travelmanager.models.RateMsg;
 import com.uniquemiban.travelmanager.utils.Constants;
 
@@ -56,6 +53,7 @@ public class RateFragment extends DialogFragment {
     private String mPlaceName = null;
 
     private ValueEventListener mValueEventListener;
+    private ValueEventListener mGlobalValueEventListener;
     private DatabaseReference mUsers;
 
     private Query mQuery;
@@ -157,89 +155,41 @@ public class RateFragment extends DialogFragment {
                                 public void onDataChange(DataSnapshot pDataSnapshot) {
                                     rateMsg.setName(pDataSnapshot.child("Name").getValue(String.class));
 
-                                    ratesRef.child(mPlaceId).child(auth.getCurrentUser().getUid()).runTransaction(new Transaction.Handler() {
+                                    ratesRef.child(mPlaceId).child(auth.getCurrentUser().getUid()).setValue(rateMsg).addOnCompleteListener(new OnCompleteListener<Void>() {
                                         @Override
-                                        public Transaction.Result doTransaction(MutableData pMutableData) {
-                                            RateMsg msg = pMutableData.getValue(RateMsg.class);
-
-                                            double oldRate = -1;
-                                            if (msg != null) {
-                                                oldRate = msg.getRate();
-                                            }
-
-                                            if (oldRate == -1) {
-                                                ratesRef.child(mPlaceId).child(auth.getCurrentUser().getUid()).setValue(rateMsg).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        public void onComplete(@NonNull Task<Void> pTask) {
+                                            if(pTask.isSuccessful()){
+                                                avgRatesRef.child(mPlaceId).child("num").runTransaction(new Transaction.Handler() {
                                                     @Override
-                                                    public void onComplete(@NonNull Task<Void> pTask) {
-                                                        if (pTask.isSuccessful()) {
-                                                            avgRatesRef.child(mPlaceId).child("num").runTransaction(new Transaction.Handler() {
-                                                                @Override
-                                                                public Transaction.Result doTransaction(MutableData pMutableData) {
-                                                                    Long l = pMutableData.getValue(Long.class);
-                                                                    if (l == null)
-                                                                        pMutableData.setValue(1L);
-                                                                    else
-                                                                        pMutableData.setValue(l + 1);
-                                                                    return Transaction.success(pMutableData);
-                                                                }
+                                                    public Transaction.Result doTransaction(MutableData pMutableData) {
+                                                        Long l = pMutableData.getValue(Long.class);
+                                                        if (l == null)
+                                                            return Transaction.success(pMutableData);
 
-                                                                @Override
-                                                                public void onComplete(DatabaseError pDatabaseError, boolean pB, DataSnapshot pDataSnapshot) {
-                                                                    Log.d("TTT", "postTransaction:onComplete:" + pDatabaseError);
-                                                                }
-                                                            });
-                                                            avgRatesRef.child(mPlaceId).child("sum").runTransaction(new Transaction.Handler() {
-                                                                @Override
-                                                                public Transaction.Result doTransaction(MutableData pMutableData) {
-                                                                    if (pMutableData.getValue() == null)
-                                                                        pMutableData.setValue(rateMsg.getRate());
-                                                                    else
-                                                                        pMutableData.setValue(pMutableData.getValue(Double.class) + rateMsg.getRate());
-                                                                    return Transaction.success(pMutableData);
-                                                                }
-
-                                                                @Override
-                                                                public void onComplete(DatabaseError pDatabaseError, boolean pB, DataSnapshot pDataSnapshot) {
-
-                                                                }
-                                                            });
-                                                        }
+                                                        pMutableData.setValue(l + 1);
+                                                        return Transaction.success(pMutableData);
                                                     }
-                                                });
-                                            } else {
-                                                final double rateDiff = rateMsg.getRate() - oldRate;
 
-                                                ratesRef.child(mPlaceId).child(auth.getCurrentUser().getUid()).setValue(rateMsg).addOnCompleteListener(new OnCompleteListener<Void>() {
                                                     @Override
-                                                    public void onComplete(@NonNull Task<Void> pTask) {
-                                                        if (pTask.isSuccessful()) {
-                                                            avgRatesRef.child(mPlaceId).child("sum").runTransaction(new Transaction.Handler() {
-                                                                @Override
-                                                                public Transaction.Result doTransaction(MutableData pMutableData) {
-                                                                    Double d = pMutableData.getValue(Double.class);
-
-                                                                    if (d == null)
-                                                                        pMutableData.setValue(rateMsg.getRate());
-                                                                    else
-                                                                        pMutableData.setValue(d + rateDiff);
+                                                    public void onComplete(DatabaseError pDatabaseError, boolean pB, DataSnapshot pDataSnapshot) {
+                                                        avgRatesRef.child(mPlaceId).child("sum").runTransaction(new Transaction.Handler() {
+                                                            @Override
+                                                            public Transaction.Result doTransaction(MutableData pMutableData) {
+                                                                if (pMutableData.getValue() == null)
                                                                     return Transaction.success(pMutableData);
-                                                                }
 
-                                                                @Override
-                                                                public void onComplete(DatabaseError pDatabaseError, boolean pB, DataSnapshot pDataSnapshot) {
+                                                                pMutableData.setValue(pMutableData.getValue(Double.class) + rateMsg.getRate());
+                                                                return Transaction.success(pMutableData);
+                                                            }
 
-                                                                }
-                                                            });
-                                                        }
+                                                            @Override
+                                                            public void onComplete(DatabaseError pDatabaseError, boolean pB, DataSnapshot pDataSnapshot) {
+                                                                mUsers.child(auth.getCurrentUser().getUid()).removeEventListener(mValueEventListener);
+                                                            }
+                                                        });
                                                     }
                                                 });
                                             }
-                                            return Transaction.success(pMutableData);
-                                        }
-
-                                        @Override
-                                        public void onComplete(DatabaseError pDatabaseError, boolean pB, DataSnapshot pDataSnapshot) {
-
                                         }
                                     });
                                 }
@@ -250,7 +200,55 @@ public class RateFragment extends DialogFragment {
                                 }
                             };
 
-                            mUsers.child(auth.getCurrentUser().getUid()).addValueEventListener(mValueEventListener);
+                            mGlobalValueEventListener = new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot pDataSnapshot) {
+                                    RateMsg oldRateMsg = pDataSnapshot.getValue(RateMsg.class);
+
+                                    if(oldRateMsg == null){
+
+                                        mUsers.child(auth.getCurrentUser().getUid()).addValueEventListener(mValueEventListener);
+
+                                    } else{
+                                        final double rateDiff = rateMsg.getRate() - oldRateMsg.getRate();
+
+                                        ratesRef.child(mPlaceId).child(auth.getCurrentUser().getUid()).child("rate").setValue(rateMsg.getRate()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> pTask) {
+                                                if (pTask.isSuccessful()) {
+                                                    ratesRef.child(mPlaceId).child(auth.getCurrentUser().getUid()).child("message").setValue(rateMsg.getMessage());
+
+                                                    avgRatesRef.child(mPlaceId).child("sum").runTransaction(new Transaction.Handler() {
+                                                        @Override
+                                                        public Transaction.Result doTransaction(MutableData pMutableData) {
+                                                            Double d = pMutableData.getValue(Double.class);
+
+                                                            if (d == null)
+                                                                return Transaction.success(pMutableData);
+
+                                                            pMutableData.setValue(d + rateDiff);
+                                                            ratesRef.child(mPlaceId).child(auth.getCurrentUser().getUid()).removeEventListener(mGlobalValueEventListener);
+                                                            return Transaction.success(pMutableData);
+                                                        }
+
+                                                        @Override
+                                                        public void onComplete(DatabaseError pDatabaseError, boolean pB, DataSnapshot pDataSnapshot) {
+
+                                                        }
+                                                    });
+                                                }
+                                            }
+                                        });
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError pDatabaseError) {
+
+                                }
+                            };
+
+                            ratesRef.child(mPlaceId).child(auth.getCurrentUser().getUid()).addValueEventListener(mGlobalValueEventListener);
                         }
                     }
                 })
