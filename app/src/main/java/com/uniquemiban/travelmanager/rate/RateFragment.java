@@ -80,7 +80,8 @@ public class RateFragment extends DialogFragment {
         mRatesList = new ArrayList<>();
         mAdapter = new RateAdapter(mRatesList);
 
-        mChildEventListener = new ChildEventListener() {
+        if(FirebaseAuth.getInstance().getCurrentUser() != null)
+            mChildEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot pDataSnapshot, String pS) {
                 mRatesList.add(pDataSnapshot.getValue(RateMsg.class));
@@ -114,6 +115,10 @@ public class RateFragment extends DialogFragment {
 
         final View v = LayoutInflater.from(getActivity()).inflate(R.layout.fragment_rate, null);
 
+        RecyclerView recyclerView = (RecyclerView) v.findViewById(R.id.recycler_view_rates);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        recyclerView.setAdapter(mAdapter);
+
         return new AlertDialog.Builder(getActivity())
                 .setTitle(mPlaceName)
                 .setView(v)
@@ -129,11 +134,6 @@ public class RateFragment extends DialogFragment {
 
                             float rating = ((RatingBar) v.findViewById(R.id.rating_bar_fragment_rate)).getRating();
                             String message = ((EditText) v.findViewById(R.id.edit_text_feedback_fragment_rate)).getText().toString();
-
-                            mQuery.addChildEventListener(mChildEventListener);
-                            RecyclerView recyclerView = (RecyclerView) v.findViewById(R.id.recycler_view_rates);
-                            recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-                            recyclerView.setAdapter(mAdapter);
 
                             final DatabaseReference ratesRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_RATES);
                             final DatabaseReference avgRatesRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_AVG_RATES);
@@ -246,6 +246,13 @@ public class RateFragment extends DialogFragment {
                     }
                 })
                 .setNegativeButton("Cancel", null).create();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if(mChildEventListener != null)
+            mQuery.addChildEventListener(mChildEventListener);
     }
 
     @Override

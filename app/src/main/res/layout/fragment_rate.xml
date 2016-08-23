@@ -4,6 +4,13 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view_rates"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    </android.support.v7.widget.RecyclerView>
+
     <RatingBar
         android:id="@+id/rating_bar_fragment_rate"
         android:layout_width="wrap_content"
@@ -16,12 +23,5 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="feedback"/>
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycler_view_rates"
-        android:layout_width="match_parent"
-        android:layout_height="300dp">
-
-    </android.support.v7.widget.RecyclerView>
 
 </LinearLayout>
