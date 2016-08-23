@@ -4,6 +4,9 @@ package com.uniquemiban.travelmanager.rate;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -11,6 +14,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -119,6 +123,11 @@ public class RateFragment extends DialogFragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         recyclerView.setAdapter(mAdapter);
 
+        final RatingBar ratingBar = (RatingBar) v.findViewById(R.id.rating_bar_fragment_rate);
+
+        Drawable drawable = ratingBar.getProgressDrawable();
+        drawable.setColorFilter(Color.parseColor("#FF9800"), PorterDuff.Mode.SRC_ATOP);
+
         return new AlertDialog.Builder(getActivity())
                 .setTitle(mPlaceName)
                 .setView(v)
@@ -132,7 +141,7 @@ public class RateFragment extends DialogFragment {
                             dismiss();
                         } else {
 
-                            float rating = ((RatingBar) v.findViewById(R.id.rating_bar_fragment_rate)).getRating();
+                            float rating = ratingBar.getRating();
                             String message = ((EditText) v.findViewById(R.id.edit_text_feedback_fragment_rate)).getText().toString();
 
                             final DatabaseReference ratesRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_RATES);
@@ -225,7 +234,7 @@ public class RateFragment extends DialogFragment {
                                                     }
                                                 });
                                             }
-                                            return null;
+                                            return Transaction.success(pMutableData);
                                         }
 
                                         @Override

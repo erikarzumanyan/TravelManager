@@ -16,6 +16,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
 import com.uniquemiban.travelmanager.start.NavigationDrawerActivity;
 import com.uniquemiban.travelmanager.R;
+import com.uniquemiban.travelmanager.utils.Constants;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -62,7 +63,7 @@ public class RegisterActivity extends AppCompatActivity {
                     return;
                 }
 
-                FirebaseAuth auth = FirebaseAuth.getInstance();
+                final FirebaseAuth auth = FirebaseAuth.getInstance();
                 auth.createUserWithEmailAndPassword(mEmailEditText.getText().toString(), mPasswordEditText.getText().toString())
                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                             @Override
@@ -70,6 +71,9 @@ public class RegisterActivity extends AppCompatActivity {
                                 if(pTask.isSuccessful()){
                                     FirebaseDatabase.getInstance().getReference().child("Users").child(pTask.getResult().getUser().getUid())
                                                                                     .child("Name").setValue(mNameEditText.getText().toString());
+
+                                    getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE).edit().putString(LoginActivity.SHARED_NAME, mNameEditText.getText().toString()).commit();
+
                                     Toast.makeText(RegisterActivity.this, "Account Was Created!", Toast.LENGTH_LONG).show();
                                     startActivity(new Intent(RegisterActivity.this, NavigationDrawerActivity.class));
                                     finish();

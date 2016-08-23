@@ -1,6 +1,7 @@
 package com.uniquemiban.travelmanager.start;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -16,8 +17,16 @@ import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.uniquemiban.travelmanager.eat.EatListFragment;
 import com.uniquemiban.travelmanager.utils.Constants;
 import com.uniquemiban.travelmanager.R;
@@ -58,10 +67,19 @@ public class NavigationDrawerActivity extends AppCompatActivity
 //            return;
 //        }
 
-        if (FirebaseAuth.getInstance().getCurrentUser() == null
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (user == null
                 && !getSharedPreferences(Constants.SHARED_PREFS, MODE_PRIVATE).getBoolean(LoginActivity.SHARED_SKIP, false)) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
+        }
+
+        SharedPreferences userPrefs = getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE);
+        if(user != null && userPrefs != null) {
+            View header = ((NavigationView)findViewById(R.id.nav_view)).getHeaderView(0);
+            ((TextView) header.findViewById(R.id.text_view_user_name_nav_header)).setText(userPrefs.getString(LoginActivity.SHARED_NAME, ""));
+            ((TextView) header.findViewById(R.id.text_view_email_nav_header)).setText(user.getEmail());
         }
 
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -167,6 +185,10 @@ public class NavigationDrawerActivity extends AppCompatActivity
         } else if (id == R.id.nav_sign_out){
             FirebaseAuth.getInstance().signOut();
             getSharedPreferences(Constants.SHARED_PREFS, MODE_PRIVATE).edit().putBoolean(LoginActivity.SHARED_SKIP, false).commit();
+            getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE).edit().putString(LoginActivity.SHARED_NAME, "").commit();
+            View header = ((NavigationView)findViewById(R.id.nav_view)).getHeaderView(0);
+            ((TextView) header.findViewById(R.id.text_view_user_name_nav_header)).setText("");
+            ((TextView) header.findViewById(R.id.text_view_email_nav_header)).setText("");
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

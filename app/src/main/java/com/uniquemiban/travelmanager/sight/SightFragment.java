@@ -1,5 +1,8 @@
 package com.uniquemiban.travelmanager.sight;
 
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
@@ -215,6 +218,7 @@ public class SightFragment extends Fragment {
             mValueEventListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot pDataSnapshot) {
+
                     Double sum = pDataSnapshot.child("sum").getValue(Double.class);
                     Long num = pDataSnapshot.child("num").getValue(Long.class);
 
