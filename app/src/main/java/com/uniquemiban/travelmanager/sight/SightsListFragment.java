@@ -1,6 +1,9 @@
 package com.uniquemiban.travelmanager.sight;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -30,15 +33,18 @@ import android.widget.Toast;
 
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.maps.android.SphericalUtil;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
+import com.uniquemiban.travelmanager.filter.FilterFragment;
 import com.uniquemiban.travelmanager.utils.Constants;
 import com.uniquemiban.travelmanager.start.NavigationDrawerActivity;
 import com.uniquemiban.travelmanager.R;
@@ -80,18 +86,26 @@ public class SightsListFragment extends Fragment {
     private String mSearchByName = null;
     private String mSearch = null;
 
+    private Location mLastLocation = null;
+    private float mRadius = -1;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        NavigationDrawerActivity activity = ((NavigationDrawerActivity)getActivity());
+        mLastLocation = activity.getLastLocation();
+        mRadius = activity.getSharedPreferences(Constants.SHARED_PREFS_SIGHT, Context.MODE_PRIVATE).getFloat(Constants.SHARED_PREFS_KEY_RADIUS, -1);
+
         mRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_SIGHTS).getRef();
         mRealm = Realm.getDefaultInstance();
 
-        RealmResults<Sight> results = mRealm.where(Sight.class).findAll();
         mSightsList = new ArrayList<>();
-        for (Sight sight : results) {
-            mSightsList.add(sight);
-        }
+
+//        RealmResults<Sight> results = mRealm.where(Sight.class).findAll();
+//        for (Sight sight : results) {
+//            mSightsList.add(sight);
+//        }
 
         mChildEventListener = new ChildEventListener() {
             @Override
@@ -99,13 +113,25 @@ public class SightsListFragment extends Fragment {
 
                 final Sight s = pDataSnapshot.getValue(Sight.class);
 
-                if(!TextUtils.isEmpty(mSearch) && !s.getName().contains(mSearch)
-                        && !s.getCategory().contains(mSearch) && !s.getLocation().contains(mSearch)) {
+                if(mLastLocation != null && mRadius > 0
+                        && SphericalUtil.computeDistanceBetween(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()),
+                        new LatLng(s.getLatitude(), s.getLongitude())) > mRadius) {
+
                     mQuery.removeEventListener(mChildEventListener);
                     mLastItemId = s.getId();
                     mQuery = mRef.orderByKey().startAt(mLastItemId).limitToFirst(LOADING_ITEMS_NUMBER);
                     mQuery.addChildEventListener(mChildEventListener);
+
+                } else if(!TextUtils.isEmpty(mSearch) && !s.getName().contains(mSearch)
+                        && !s.getCategory().contains(mSearch) && !s.getLocation().contains(mSearch)) {
+
+                    mQuery.removeEventListener(mChildEventListener);
+                    mLastItemId = s.getId();
+                    mQuery = mRef.orderByKey().startAt(mLastItemId).limitToFirst(LOADING_ITEMS_NUMBER);
+                    mQuery.addChildEventListener(mChildEventListener);
+
                 } else{
+
                     if (TextUtils.isEmpty(s.getId())) {
                         String id = pDataSnapshot.getKey();
                         s.setId(id);
@@ -320,6 +346,12 @@ public class SightsListFragment extends Fragment {
         });
     }
 
+    @Override
+    public void onResume() {
+        searchItemsByRadius();
+        super.onResume();
+    }
+
     private void deleteFromList(Sight pSight) {
         int index = -1;
         String id = pSight.getId();
@@ -370,7 +402,7 @@ public class SightsListFragment extends Fragment {
         mQuery.addChildEventListener(mChildEventListener);
     }
 
-    public void  searchItems(String pQuery){
+    public void searchItems(String pQuery){
         RealmQuery<Sight> realmQuery = mRealm.where(Sight.class).contains("mName", pQuery, Case.INSENSITIVE);
         realmQuery = realmQuery.or().contains("mCategory", pQuery, Case.INSENSITIVE);
         realmQuery = realmQuery.or().contains("mLocation", pQuery, Case.INSENSITIVE);
@@ -384,6 +416,44 @@ public class SightsListFragment extends Fragment {
         mAdapter.notifyDataSetChanged();
 
         mSearch = pQuery;
+
+        mRef.addChildEventListener(mChildEventListener);
+    }
+
+    public void searchItemsByRadius(){
+        RealmQuery<Sight> realmQuery = null;
+
+        if(mSearch != null){
+            realmQuery = mRealm.where(Sight.class).contains("mName", mSearch, Case.INSENSITIVE);
+            realmQuery = realmQuery.or().contains("mCategory", mSearch, Case.INSENSITIVE);
+            realmQuery = realmQuery.or().contains("mLocation", mSearch, Case.INSENSITIVE);
+        } else {
+            realmQuery = mRealm.where(Sight.class);
+        }
+
+        NavigationDrawerActivity activity = ((NavigationDrawerActivity)getActivity());
+        mLastLocation = activity.getLastLocation();
+
+        SharedPreferences prefs = activity.getSharedPreferences(Constants.SHARED_PREFS_SIGHT, Context.MODE_PRIVATE);
+        mRadius = prefs.getFloat(Constants.SHARED_PREFS_KEY_RADIUS, -1);
+
+        if (mLastLocation == null && !TextUtils.isEmpty(prefs.getString(Constants.SHARED_PREFS_KEY_LAST_LAT, ""))) {
+            mLastLocation = new Location("");
+            mLastLocation.setLatitude(Double.valueOf(prefs.getString(Constants.SHARED_PREFS_KEY_LAST_LAT, "")));
+            mLastLocation.setLongitude(Double.valueOf(prefs.getString(Constants.SHARED_PREFS_KEY_LAST_LONG, "")));
+        }
+
+        RealmResults<Sight> results = realmQuery.findAll();
+        mSightsList.clear();
+        for (Sight s: results){
+            if(mLastLocation != null && mRadius > 0
+                    && SphericalUtil.computeDistanceBetween(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()),
+                    new LatLng(s.getLatitude(), s.getLongitude())) > mRadius)
+                continue;
+            mSightsList.add(s);
+        }
+
+        mAdapter.notifyDataSetChanged();
 
         mRef.addChildEventListener(mChildEventListener);
     }
@@ -418,6 +488,9 @@ public class SightsListFragment extends Fragment {
                     return false;
                 }
             });
+        } else if(id == R.id.action_filter){
+            FilterFragment fragment = FilterFragment.newInstance(Constants.SHARED_PREFS_SIGHT);
+            fragment.show(((NavigationDrawerActivity)getActivity()).getSupportFragmentManager(), FilterFragment.FRAGMENT_TAG);
         }
         return super.onOptionsItemSelected(item);
     }
