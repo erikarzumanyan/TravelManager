@@ -1,10 +1,17 @@
 package com.uniquemiban.travelmanager.start;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Point;
+import android.location.Location;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -20,6 +27,10 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderApi;
+import com.google.android.gms.location.LocationServices;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -34,11 +45,14 @@ import com.uniquemiban.travelmanager.login.LoginActivity;
 import com.uniquemiban.travelmanager.sight.SightsListFragment;
 
 public class NavigationDrawerActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private DrawerLayout mDrawer;
     private Toolbar mToolbar;
     private int mWidth = 500;
+
+    private GoogleApiClient mGoogleApiClient;
+    private Location mLastLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +81,14 @@ public class NavigationDrawerActivity extends AppCompatActivity
 //            return;
 //        }
 
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+        }
+
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         if (user == null
@@ -76,8 +98,8 @@ public class NavigationDrawerActivity extends AppCompatActivity
         }
 
         SharedPreferences userPrefs = getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE);
-        if(user != null && userPrefs != null) {
-            View header = ((NavigationView)findViewById(R.id.nav_view)).getHeaderView(0);
+        if (user != null && userPrefs != null) {
+            View header = ((NavigationView) findViewById(R.id.nav_view)).getHeaderView(0);
             ((TextView) header.findViewById(R.id.text_view_user_name_nav_header)).setText(userPrefs.getString(LoginActivity.SHARED_NAME, ""));
             ((TextView) header.findViewById(R.id.text_view_email_nav_header)).setText(user.getEmail());
         }
@@ -96,6 +118,22 @@ public class NavigationDrawerActivity extends AppCompatActivity
                 .replace(R.id.fragment_container, fragment, SightsListFragment.FRAGMENT_TAG)
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                 .commit();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        mGoogleApiClient.disconnect();
+        super.onStop();
+    }
+
+    public Location getLastLocation(){
+        return mLastLocation;
     }
 
     public int getWidth() {
@@ -149,7 +187,7 @@ public class NavigationDrawerActivity extends AppCompatActivity
 
             Fragment fragment = manager.findFragmentByTag(SightsListFragment.FRAGMENT_TAG);
 
-            if(fragment == null){
+            if (fragment == null) {
                 fragment = new SightsListFragment();
                 manager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 manager.beginTransaction()
@@ -164,7 +202,7 @@ public class NavigationDrawerActivity extends AppCompatActivity
 
             Fragment fragment = manager.findFragmentByTag(EatListFragment.FRAGMENT_TAG);
 
-            if(fragment == null){
+            if (fragment == null) {
                 fragment = new EatListFragment();
                 manager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 manager.beginTransaction()
@@ -179,14 +217,14 @@ public class NavigationDrawerActivity extends AppCompatActivity
 
         } else if (id == R.id.nav_share) {
 
-        } else if(id == R.id.nav_sign_in){
+        } else if (id == R.id.nav_sign_in) {
             startActivity(new Intent(this, LoginActivity.class));
             getSharedPreferences(Constants.SHARED_PREFS, MODE_PRIVATE).edit().putBoolean(LoginActivity.SHARED_SKIP, false).commit();
-        } else if (id == R.id.nav_sign_out){
+        } else if (id == R.id.nav_sign_out) {
             FirebaseAuth.getInstance().signOut();
             getSharedPreferences(Constants.SHARED_PREFS, MODE_PRIVATE).edit().putBoolean(LoginActivity.SHARED_SKIP, false).commit();
             getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE).edit().putString(LoginActivity.SHARED_NAME, "").commit();
-            View header = ((NavigationView)findViewById(R.id.nav_view)).getHeaderView(0);
+            View header = ((NavigationView) findViewById(R.id.nav_view)).getHeaderView(0);
             ((TextView) header.findViewById(R.id.text_view_user_name_nav_header)).setText("");
             ((TextView) header.findViewById(R.id.text_view_email_nav_header)).setText("");
         }
@@ -194,5 +232,31 @@ public class NavigationDrawerActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle pBundle) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "Needed Location Permission", Toast.LENGTH_LONG).show();
+            return;
+        }
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+
+        getSharedPreferences(Constants.SHARED_PREFS_SIGHT, Context.MODE_PRIVATE).edit()
+                .putString(Constants.SHARED_PREFS_KEY_LAST_LAT, mLastLocation.getLatitude() + "").commit();
+        getSharedPreferences(Constants.SHARED_PREFS_SIGHT, Context.MODE_PRIVATE).edit()
+                .putString(Constants.SHARED_PREFS_KEY_LAST_LONG, mLastLocation.getLongitude() + "").commit();
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int pI) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult pConnectionResult) {
+
     }
 }

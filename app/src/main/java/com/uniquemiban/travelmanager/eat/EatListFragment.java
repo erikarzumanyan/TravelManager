@@ -390,6 +390,10 @@ public class EatListFragment extends Fragment {
         mAdapter.notifyDataSetChanged();
     }
 
+    public void searchItemsByRadius(){
+
+    }
+
     @Override
     public void onStop() {
         super.onStop();
