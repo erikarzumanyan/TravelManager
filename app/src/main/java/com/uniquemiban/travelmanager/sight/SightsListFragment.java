@@ -19,6 +19,7 @@ import android.support.v7.widget.SearchView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -41,6 +42,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.maps.android.SphericalUtil;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
@@ -49,10 +53,14 @@ import com.uniquemiban.travelmanager.utils.Constants;
 import com.uniquemiban.travelmanager.start.NavigationDrawerActivity;
 import com.uniquemiban.travelmanager.R;
 import com.uniquemiban.travelmanager.models.Sight;
+import com.uniquemiban.travelmanager.utils.Utils;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import cz.msebera.android.httpclient.Header;
 import io.realm.Case;
 import io.realm.Realm;
 import io.realm.RealmQuery;
@@ -551,7 +559,32 @@ public class SightsListFragment extends Fragment {
             if (mSight.getLocation() != null)
                 mLocationTextView.setText("Location: " + mSight.getLocation());
 
-            mDistanceTextView.setText("Distance: N/A");
+            mDistanceTextView.setText("");
+
+            if(mLastLocation != null) {
+                String url = "https://maps.googleapis.com/maps/api/distancematrix/json";
+                AsyncHttpClient client = new AsyncHttpClient();
+                RequestParams params = new RequestParams();
+                params.put("origins", mLastLocation.getLatitude() + "," + mLastLocation.getLongitude());
+                params.put("destinations", mSight.getLatitude() + "," + mSight.getLongitude());
+                params.put("key", Constants.GOOGLE_MATRIX_API_KEY);
+
+                client.get(url, params, new JsonHttpResponseHandler(){
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                        String distance = Utils.getDistance(response);
+                        if(distance == null)
+                            mDistanceTextView.setText("Distance: N/A");
+                        else
+                            mDistanceTextView.setText("Distance: " + Utils.getDistance(response));
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                        mDistanceTextView.setText("Distance: N/A");
+                    }
+                });
+            }
 
             mProgressBar.setVisibility(View.VISIBLE);
 

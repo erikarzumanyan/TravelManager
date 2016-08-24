@@ -60,6 +60,9 @@ dependencies {
 
     /* Parallax Scrolling */
     compile 'com.github.nirhart:parallaxscroll:1.0'
+
+    /* Http Request */
+    compile 'com.loopj.android:android-async-http:1.4.9'
 }
 
 apply plugin: 'com.google.gms.google-services'
