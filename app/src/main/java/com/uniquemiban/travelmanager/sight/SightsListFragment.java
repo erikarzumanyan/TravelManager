@@ -167,6 +167,8 @@ public class SightsListFragment extends Fragment {
                     public void onSuccess() {
                         deleteFromList(s);
                         Picasso.with(getActivity().getApplicationContext()).invalidate(s.getPhotoUrl());
+                        Picasso.with(getActivity().getApplicationContext()).invalidate(s.getPhoto1Url());
+                        Picasso.with(getActivity().getApplicationContext()).invalidate(s.getPhoto2Url());
                     }
                 });
             }
@@ -382,14 +384,6 @@ public class SightsListFragment extends Fragment {
         mAdapter.notifyDataSetChanged();
 
         mSearch = pQuery;
-
-        //mQuery.removeEventListener(mChildEventListener);
-//        if(!mSightsList.isEmpty())
-//            mQuery = mRef.orderByKey().startAt(mSightsList.get(mSightsList.size() - 1).getId()).limitToFirst(LOADING_ITEMS_NUMBER);
-//        else
-//            mQuery = mRef.orderByKey().limitToFirst(LOADING_ITEMS_NUMBER);
-
-        //mQuery.addChildEventListener(mChildEventListener);
 
         mRef.addChildEventListener(mChildEventListener);
     }
