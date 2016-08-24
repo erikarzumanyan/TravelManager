@@ -1,41 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
               android:orientation="vertical"
-             android:layout_height="match_parent"
-             tools:context="com.uniquemiban.travelmanager.rate.RateFragment">
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Rate Place"
-        android:id="@+id/text_view_place_name" android:layout_gravity="center_horizontal"
-        android:textSize="40sp" android:layout_marginBottom="10dp"/>
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view_rates"
+        android:layout_width="match_parent"
+        android:layout_height="500dp">
+
+    </android.support.v7.widget.RecyclerView>
+
     <RatingBar
+        android:id="@+id/rating_bar_fragment_rate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/rating_bar" android:layout_gravity="center_horizontal"/>
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="@dimen/activity_vertical_margin"/>
+
     <EditText
+        android:id="@+id/edit_text_feedback_fragment_rate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/edit_text_comment" android:layout_gravity="center_horizontal"
-        android:hint="Comment"/>
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal">
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Submit"
-            android:id="@+id/button_submit"
-            android:layout_alignParentTop="true" android:layout_alignParentEnd="true"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cancel"
-            android:id="@+id/button_cancel"
-            android:layout_alignParentTop="true" android:layout_alignParentStart="true"/>
-    </RelativeLayout>
+        android:hint="feedback"/>
+
 </LinearLayout>

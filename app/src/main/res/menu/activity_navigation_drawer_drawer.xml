@@ -39,4 +39,19 @@
         </menu>
     </item>
 
+    <item android:title="User">
+        <menu>
+            <item
+                android:id="@+id/nav_sign_in"
+                android:icon="@drawable/ic_menu_share"
+                android:title="Sign In" />
+
+            <item
+                android:id="@+id/nav_sign_out"
+                android:icon="@drawable/ic_menu_share"
+                android:title="Sign Out" />
+
+        </menu>
+    </item>
+
 </menu>

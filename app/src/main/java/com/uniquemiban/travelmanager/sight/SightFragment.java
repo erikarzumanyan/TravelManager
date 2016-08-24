@@ -1,5 +1,8 @@
 package com.uniquemiban.travelmanager.sight;
 
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
@@ -16,17 +19,24 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.daimajia.slider.library.SliderLayout;
 import com.daimajia.slider.library.SliderTypes.BaseSliderView;
 import com.daimajia.slider.library.SliderTypes.DefaultSliderView;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.nirhart.parallaxscroll.views.ParallaxScrollView;
 import com.squareup.picasso.Picasso;
 import com.uniquemiban.travelmanager.R;
 import com.uniquemiban.travelmanager.eat.EatListFragment;
 import com.uniquemiban.travelmanager.map.GmapFragment;
 import com.uniquemiban.travelmanager.models.Sight;
+import com.uniquemiban.travelmanager.rate.RateFragment;
 import com.uniquemiban.travelmanager.start.NavigationDrawerActivity;
 import com.uniquemiban.travelmanager.utils.Constants;
 import com.uniquemiban.travelmanager.weather.WeatherFragment;
@@ -53,6 +63,9 @@ public class SightFragment extends Fragment {
     private SliderLayout mSliderShow;
 
     WeatherMap mWeatherMap;
+
+    DatabaseReference mRef;
+    ValueEventListener mValueEventListener;
 
     public static SightFragment newInstance(String pId) {
         SightFragment fragment = new SightFragment();
@@ -171,10 +184,56 @@ public class SightFragment extends Fragment {
 
                 @Override
                 public void failure(String message) {
-                    Snackbar.make(getView(), "Connection Error", Snackbar.LENGTH_LONG).show();
+                    //Snackbar.make(getView(), "Connection Error", Snackbar.LENGTH_LONG).show();
+                    mWeatherMap.getLocationWeather(String.valueOf(mSight.getLatitude()), String.valueOf(mSight.getLongitude()), new WeatherCallback() {
+                        @Override
+                        public void success(WeatherResponseModel response) {
+                            Double weather = TempUnitConverter.convertToCelsius(response.getMain().getTemp());
+                            ((TextView)v.findViewById(R.id.text_view_weather_sight_fragment)).setText(weather.intValue() + "°C");
+                        }
 
+                        @Override
+                        public void failure(String message) {
+                            ((TextView)v.findViewById(R.id.text_view_weather_sight_fragment)).setText("N/A");
+                        }
+                    });
                 }
             });
+
+            final TextView rateTextView = (TextView)v.findViewById(R.id.text_view_rate_sight_fragment);
+            final RatingBar rateRatingBar = (RatingBar)v.findViewById(R.id.rating_bar_fragment_sight);
+
+            rateTextView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View pView) {
+                    RateFragment fragment = RateFragment.newInstance(mSight.getId(), mSight.getName());
+                    fragment.show(((NavigationDrawerActivity)getActivity()).getSupportFragmentManager(), RateFragment.FRAGMENT_TAG);
+                }
+            });
+
+            rateRatingBar.setOnClickListener(null);
+
+            mRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_AVG_RATES).child(mSight.getId());
+
+            mValueEventListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot pDataSnapshot) {
+
+                    Double sum = pDataSnapshot.child("sum").getValue(Double.class);
+                    Long num = pDataSnapshot.child("num").getValue(Long.class);
+
+                    if(sum != null && num != null) {
+                        rateTextView.setText("" + sum / num);
+                        rateRatingBar.setRating((float) (sum / num));
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError pDatabaseError) {
+
+                }
+            };
+
         }
 
         final ImageView fav = (ImageView) v.findViewById(R.id.image_view_fav_sight_fragment);
@@ -185,12 +244,14 @@ public class SightFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+        mRef.addValueEventListener(mValueEventListener);
         mSliderShow.startAutoCycle();
     }
 
     @Override
     public void onStop() {
         mSliderShow.stopAutoCycle();
+        mRef.removeEventListener(mValueEventListener);
         super.onStop();
     }
 
@@ -219,7 +280,7 @@ public class SightFragment extends Fragment {
                 fragment = GmapFragment.newInstance(mSight.getName(), mSight.getLongitude(), mSight.getLatitude());
 
                 manager.beginTransaction()
-                        .replace(R.id.fragment_container, fragment, GmapFragment.FRAGMENT_TAG)
+                        .add(R.id.fragment_container, fragment, GmapFragment.FRAGMENT_TAG)
                         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                         .addToBackStack(GmapFragment.FRAGMENT_TAG)
                         .commit();
