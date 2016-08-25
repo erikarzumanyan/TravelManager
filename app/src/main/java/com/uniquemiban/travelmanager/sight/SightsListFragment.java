@@ -110,11 +110,6 @@ public class SightsListFragment extends Fragment {
 
         mSightsList = new ArrayList<>();
 
-//        RealmResults<Sight> results = mRealm.where(Sight.class).findAll();
-//        for (Sight sight : results) {
-//            mSightsList.add(sight);
-//        }
-
         mChildEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot pDataSnapshot, String pS) {
@@ -147,14 +142,22 @@ public class SightsListFragment extends Fragment {
                     } else {
                         mRealm = Realm.getDefaultInstance();
 
-                        mRealm.executeTransactionAsync(new Realm.Transaction() {
+//                        mRealm.executeTransactionAsync(new Realm.Transaction() {
+//                            @Override
+//                            public void execute(Realm realm) {
+//                                realm.copyToRealmOrUpdate(s);
+//                            }
+//                        }, new Realm.Transaction.OnSuccess() {
+//                            @Override
+//                            public void onSuccess() {
+//                                updateUI(s);
+//                            }
+//                        });
+
+                        mRealm.executeTransaction(new Realm.Transaction() {
                             @Override
                             public void execute(Realm realm) {
                                 realm.copyToRealmOrUpdate(s);
-                            }
-                        }, new Realm.Transaction.OnSuccess() {
-                            @Override
-                            public void onSuccess() {
                                 updateUI(s);
                             }
                         });
@@ -354,18 +357,8 @@ public class SightsListFragment extends Fragment {
                 }
             }
         });
-    }
 
-    @Override
-    public void onResume() {
-        super.onResume();
         searchItemsByRadius();
-    }
-
-    @Override
-    public void onPause() {
-        mRef.removeEventListener(mChildEventListener);
-        super.onPause();
     }
 
     private void deleteFromList(Sight pSight) {
@@ -392,48 +385,15 @@ public class SightsListFragment extends Fragment {
             mSightsList.add(pSight);
             mAdapter.notifyItemChanged(mSightsList.size() - 1);
         } else {
+            mSightsList.remove(index);
             mSightsList.add(index, pSight);
-            mSightsList.remove(index + 1);
             mAdapter.notifyItemChanged(index);
         }
     }
 
-    public void searchItemsByName(String pQuery){
-        RealmResults<Sight> results = mRealm.where(Sight.class).contains("mName", pQuery, Case.INSENSITIVE).findAll();
-        mSightsList.clear();
-        for (Sight s: results){
-            mSightsList.add(s);
-        }
-        mAdapter.notifyDataSetChanged();
-
-        mSearch = pQuery;
-
-        mQuery.removeEventListener(mChildEventListener);
-
-        if(!mSightsList.isEmpty())
-            mQuery = mRef.orderByKey().startAt(mSightsList.get(mSightsList.size() - 1).getId()).limitToFirst(LOADING_ITEMS_NUMBER);
-        else
-            mQuery = mRef.orderByKey().limitToFirst(LOADING_ITEMS_NUMBER);
-
-        mQuery.addChildEventListener(mChildEventListener);
-    }
-
     public void searchItems(String pQuery){
-        RealmQuery<Sight> realmQuery = mRealm.where(Sight.class).contains("mName", pQuery, Case.INSENSITIVE);
-        realmQuery = realmQuery.or().contains("mCategory", pQuery, Case.INSENSITIVE);
-        realmQuery = realmQuery.or().contains("mLocation", pQuery, Case.INSENSITIVE);
-
-        RealmResults<Sight> results = realmQuery.findAll();
-        mSightsList.clear();
-        for (Sight s: results){
-            mSightsList.add(s);
-        }
-
-        mAdapter.notifyDataSetChanged();
-
         mSearch = pQuery;
-
-        mRef.addChildEventListener(mChildEventListener);
+        searchItemsByRadius();
     }
 
     public void searchItemsByRadius(){
@@ -471,6 +431,7 @@ public class SightsListFragment extends Fragment {
 
         mAdapter.notifyDataSetChanged();
 
+        mRef.removeEventListener(mChildEventListener);
         mRef.addChildEventListener(mChildEventListener);
     }
 
@@ -478,6 +439,7 @@ public class SightsListFragment extends Fragment {
     public void onStop() {
         super.onStop();
         mRealm.close();
+        mRef.removeEventListener(mChildEventListener);
         mQuery.removeEventListener(mChildEventListener);
     }
 
@@ -577,19 +539,16 @@ public class SightsListFragment extends Fragment {
                 params.put("destinations", mSight.getLatitude() + "," + mSight.getLongitude());
                 params.put("key", Constants.GOOGLE_MATRIX_API_KEY);
 
+                mDistanceTextView.setText("Distance:      ");
+
                 client.get(url, params, new JsonHttpResponseHandler(){
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                         String distance = Utils.getDistance(response);
-                        if(distance == null)
-                            mDistanceTextView.setText("Distance: N/A");
-                        else
+                        if(!TextUtils.isEmpty(distance))
                             mDistanceTextView.setText("Distance: " + Utils.getDistance(response));
-                    }
-
-                    @Override
-                    public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                        mDistanceTextView.setText("Distance: N/A");
+                        else
+                            mDistanceTextView.setText("");
                     }
                 });
             }

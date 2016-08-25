@@ -1,9 +1,11 @@
 package com.uniquemiban.travelmanager.sight;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -21,19 +23,27 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.daimajia.slider.library.SliderLayout;
 import com.daimajia.slider.library.SliderTypes.BaseSliderView;
 import com.daimajia.slider.library.SliderTypes.DefaultSliderView;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 import com.nirhart.parallaxscroll.views.ParallaxScrollView;
 import com.squareup.picasso.Picasso;
 import com.uniquemiban.travelmanager.R;
 import com.uniquemiban.travelmanager.eat.EatListFragment;
+import com.uniquemiban.travelmanager.login.LoginActivity;
 import com.uniquemiban.travelmanager.map.GmapFragment;
 import com.uniquemiban.travelmanager.models.Sight;
 import com.uniquemiban.travelmanager.rate.RateFragment;
@@ -66,6 +76,8 @@ public class SightFragment extends Fragment {
 
     DatabaseReference mRef;
     ValueEventListener mValueEventListener;
+
+    ValueEventListener favEventListener;
 
     public static SightFragment newInstance(String pId) {
         SightFragment fragment = new SightFragment();
@@ -212,6 +224,56 @@ public class SightFragment extends Fragment {
             });
 
             rateRatingBar.setOnClickListener(null);
+
+            final ImageView fav = (ImageView)v.findViewById(R.id.image_view_fav_sight_fragment);
+
+            final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            final DatabaseReference favRef = FirebaseDatabase.getInstance().getReference()
+                    .child(Constants.FIREBASE_FAVORITES).child(user.getUid()).child(mSight.getId());
+
+            favEventListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot pDataSnapshot) {
+                    if (pDataSnapshot.getValue(Boolean.class) == null) {
+                        favRef.setValue(true).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> pTask) {
+                                fav.setImageResource(R.drawable.favtrue);
+                                //addToFavorites(mSight);
+                            }
+                        });
+                        favRef.removeEventListener(this);
+                    } else {
+                        favRef.setValue(null).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> pTask) {
+                                fav.setImageResource(R.drawable.favfalse);
+                            }
+                        });
+                        favRef.removeEventListener(this);
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError pDatabaseError) {
+                    Toast.makeText(getActivity(), "Something went wrong..", Toast.LENGTH_LONG).show();
+                    favRef.removeEventListener(this);
+                }
+            };
+
+            fav.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View pView) {
+                    if(user == null){
+                        Toast.makeText(getActivity(), "Please, sign in..", Toast.LENGTH_LONG).show();
+                        startActivity(new Intent(getActivity(), LoginActivity.class));
+                        getActivity().finish();
+                        return;
+                    }
+
+                    favRef.addValueEventListener(favEventListener);
+                }
+            });
 
             mRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_AVG_RATES).child(mSight.getId());
 
