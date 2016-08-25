@@ -50,16 +50,6 @@
                         android:layout_alignParentLeft="true"
                         android:padding="@dimen/padding"/>
 
-                    <ImageView
-                        android:id="@+id/image_view_fav_sight_fragment"
-                        android:layout_width="60dp"
-                        android:layout_height="60dp"
-                        android:layout_alignParentBottom="true"
-                        android:layout_alignParentEnd="true"
-                        android:layout_alignParentRight="true"
-                        android:src="@drawable/favfalse"
-                        android:padding="@dimen/padding"/>
-
                 </RelativeLayout>
 
             </RelativeLayout>
