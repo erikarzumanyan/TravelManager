@@ -539,16 +539,12 @@ public class SightsListFragment extends Fragment {
                 params.put("destinations", mSight.getLatitude() + "," + mSight.getLongitude());
                 params.put("key", Constants.GOOGLE_MATRIX_API_KEY);
 
-                mDistanceTextView.setText("Distance:      ");
-
                 client.get(url, params, new JsonHttpResponseHandler(){
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                         String distance = Utils.getDistance(response);
                         if(!TextUtils.isEmpty(distance))
                             mDistanceTextView.setText("Distance: " + Utils.getDistance(response));
-                        else
-                            mDistanceTextView.setText("");
                     }
                 });
             }

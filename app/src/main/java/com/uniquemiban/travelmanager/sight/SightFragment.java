@@ -77,8 +77,6 @@ public class SightFragment extends Fragment {
     DatabaseReference mRef;
     ValueEventListener mValueEventListener;
 
-    ValueEventListener favEventListener;
-
     public static SightFragment newInstance(String pId) {
         SightFragment fragment = new SightFragment();
         Bundle bundle = new Bundle();
@@ -225,56 +223,6 @@ public class SightFragment extends Fragment {
 
             rateRatingBar.setOnClickListener(null);
 
-            final ImageView fav = (ImageView)v.findViewById(R.id.image_view_fav_sight_fragment);
-
-            final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-            final DatabaseReference favRef = FirebaseDatabase.getInstance().getReference()
-                    .child(Constants.FIREBASE_FAVORITES).child(user.getUid()).child(mSight.getId());
-
-            favEventListener = new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot pDataSnapshot) {
-                    if (pDataSnapshot.getValue(Boolean.class) == null) {
-                        favRef.setValue(true).addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> pTask) {
-                                fav.setImageResource(R.drawable.favtrue);
-                                //addToFavorites(mSight);
-                            }
-                        });
-                        favRef.removeEventListener(this);
-                    } else {
-                        favRef.setValue(null).addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> pTask) {
-                                fav.setImageResource(R.drawable.favfalse);
-                            }
-                        });
-                        favRef.removeEventListener(this);
-                    }
-                }
-
-                @Override
-                public void onCancelled(DatabaseError pDatabaseError) {
-                    Toast.makeText(getActivity(), "Something went wrong..", Toast.LENGTH_LONG).show();
-                    favRef.removeEventListener(this);
-                }
-            };
-
-            fav.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View pView) {
-                    if(user == null){
-                        Toast.makeText(getActivity(), "Please, sign in..", Toast.LENGTH_LONG).show();
-                        startActivity(new Intent(getActivity(), LoginActivity.class));
-                        getActivity().finish();
-                        return;
-                    }
-
-                    favRef.addValueEventListener(favEventListener);
-                }
-            });
-
             mRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_AVG_RATES).child(mSight.getId());
 
             mValueEventListener = new ValueEventListener() {
@@ -285,8 +233,13 @@ public class SightFragment extends Fragment {
                     Long num = pDataSnapshot.child("num").getValue(Long.class);
 
                     if(sum != null && num != null) {
-                        rateTextView.setText(String.format("%.2f", (float)(sum / num)));
-                        rateRatingBar.setRating((float) (sum / num));
+                        if(num != 0) {
+                            rateTextView.setText(String.format("%.2f", (float) (sum / num)));
+                            rateRatingBar.setRating((float) (sum / num));
+                        } else{
+                            rateTextView.setText("Rate");
+                            rateRatingBar.setRating(0f);
+                        }
                     }
                 }
 
@@ -297,8 +250,6 @@ public class SightFragment extends Fragment {
             };
 
         }
-
-        final ImageView fav = (ImageView) v.findViewById(R.id.image_view_fav_sight_fragment);
 
         return v;
     }
