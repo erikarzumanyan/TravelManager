@@ -223,7 +223,7 @@ public class SightFragment extends Fragment {
                     Long num = pDataSnapshot.child("num").getValue(Long.class);
 
                     if(sum != null && num != null) {
-                        rateTextView.setText("" + sum / num);
+                        rateTextView.setText(String.format("%.2f", (float)(sum / num)));
                         rateRatingBar.setRating((float) (sum / num));
                     }
                 }
