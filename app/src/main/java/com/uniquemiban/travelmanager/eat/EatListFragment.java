@@ -224,19 +224,33 @@ public class EatListFragment extends Fragment {
 
         setHasOptionsMenu(true);
 
-        NavigationDrawerActivity activity = (NavigationDrawerActivity)getActivity();
+        final NavigationDrawerActivity activity = (NavigationDrawerActivity)getActivity();
 
         ActionBar bar = activity.getSupportActionBar();
-        bar.setDisplayHomeAsUpEnabled(false);
-        bar.setDisplayShowCustomEnabled(true);
 
         Toolbar toolbar = activity.getToolbar();
 
         toolbar.setTitle("Eat");
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                activity, activity.getDrawer(), toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        activity.getDrawer().setDrawerListener(toggle);
-        toggle.syncState();
+
+        if(mRadius == -1) {
+            bar.setDisplayHomeAsUpEnabled(false);
+            bar.setDisplayShowCustomEnabled(true);
+
+            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                    activity, activity.getDrawer(), toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+            activity.getDrawer().setDrawerListener(toggle);
+            toggle.syncState();
+        } else {
+            bar.setDisplayShowCustomEnabled(false);
+            bar.setDisplayHomeAsUpEnabled(true);
+
+            toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View pView) {
+                    activity.onBackPressed();
+                }
+            });
+        }
 
         mEatRecyclerView = (RecyclerView) view.findViewById(R.id.fragment_eat_list_recycler_view);
         mEatRecyclerView.setItemAnimator(new RecyclerView.ItemAnimator() {

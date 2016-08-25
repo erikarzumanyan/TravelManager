@@ -168,17 +168,19 @@ public class SightsListFragment extends Fragment {
 
                 mRealm = Realm.getDefaultInstance();
 
-                mRealm.executeTransactionAsync(new Realm.Transaction() {
-                    @Override
-                    public void execute(Realm realm) {
-                        realm.copyToRealmOrUpdate(s);
-                    }
-                }, new Realm.Transaction.OnSuccess() {
-                    @Override
-                    public void onSuccess() {
-                        updateUI(s);
-                    }
-                });
+                if(mRealm.where(Sight.class).equalTo("mId", s.getId()).findFirst()!= null) {
+                    mRealm.executeTransactionAsync(new Realm.Transaction() {
+                        @Override
+                        public void execute(Realm realm) {
+                            realm.copyToRealmOrUpdate(s);
+                        }
+                    }, new Realm.Transaction.OnSuccess() {
+                        @Override
+                        public void onSuccess() {
+                            updateUI(s);
+                        }
+                    });
+                }
             }
 
             @Override
@@ -356,8 +358,14 @@ public class SightsListFragment extends Fragment {
 
     @Override
     public void onResume() {
-        searchItemsByRadius();
         super.onResume();
+        searchItemsByRadius();
+    }
+
+    @Override
+    public void onPause() {
+        mRef.removeEventListener(mChildEventListener);
+        super.onPause();
     }
 
     private void deleteFromList(Sight pSight) {

@@ -218,8 +218,9 @@ public class NavigationDrawerActivity extends AppCompatActivity
         } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_sign_in) {
-            startActivity(new Intent(this, LoginActivity.class));
             getSharedPreferences(Constants.SHARED_PREFS, MODE_PRIVATE).edit().putBoolean(LoginActivity.SHARED_SKIP, false).commit();
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
         } else if (id == R.id.nav_sign_out) {
             FirebaseAuth.getInstance().signOut();
             getSharedPreferences(Constants.SHARED_PREFS, MODE_PRIVATE).edit().putBoolean(LoginActivity.SHARED_SKIP, false).commit();
@@ -243,10 +244,12 @@ public class NavigationDrawerActivity extends AppCompatActivity
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
 
-        getSharedPreferences(Constants.SHARED_PREFS_SIGHT, Context.MODE_PRIVATE).edit()
-                .putString(Constants.SHARED_PREFS_KEY_LAST_LAT, mLastLocation.getLatitude() + "").commit();
-        getSharedPreferences(Constants.SHARED_PREFS_SIGHT, Context.MODE_PRIVATE).edit()
-                .putString(Constants.SHARED_PREFS_KEY_LAST_LONG, mLastLocation.getLongitude() + "").commit();
+        if(mLastLocation != null) {
+            getSharedPreferences(Constants.SHARED_PREFS_SIGHT, Context.MODE_PRIVATE).edit()
+                    .putString(Constants.SHARED_PREFS_KEY_LAST_LAT, mLastLocation.getLatitude() + "").commit();
+            getSharedPreferences(Constants.SHARED_PREFS_SIGHT, Context.MODE_PRIVATE).edit()
+                    .putString(Constants.SHARED_PREFS_KEY_LAST_LONG, mLastLocation.getLongitude() + "").commit();
+        }
 
     }
 

@@ -82,34 +82,40 @@ public class RateFragment extends DialogFragment {
         mRatesList = new ArrayList<>();
         mAdapter = new RateAdapter(mRatesList);
 
-        if(FirebaseAuth.getInstance().getCurrentUser() != null)
+        if(FirebaseAuth.getInstance().getCurrentUser() != null) {
             mChildEventListener = new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot pDataSnapshot, String pS) {
-                mRatesList.add(pDataSnapshot.getValue(RateMsg.class));
-                mAdapter.notifyDataSetChanged();
-            }
+                @Override
+                public void onChildAdded(DataSnapshot pDataSnapshot, String pS) {
+                    mRatesList.add(pDataSnapshot.getValue(RateMsg.class));
+                    mAdapter.notifyDataSetChanged();
+                }
 
-            @Override
-            public void onChildChanged(DataSnapshot pDataSnapshot, String pS) {
+                @Override
+                public void onChildChanged(DataSnapshot pDataSnapshot, String pS) {
 
-            }
+                }
 
-            @Override
-            public void onChildRemoved(DataSnapshot pDataSnapshot) {
+                @Override
+                public void onChildRemoved(DataSnapshot pDataSnapshot) {
 
-            }
+                }
 
-            @Override
-            public void onChildMoved(DataSnapshot pDataSnapshot, String pS) {
+                @Override
+                public void onChildMoved(DataSnapshot pDataSnapshot, String pS) {
 
-            }
+                }
 
-            @Override
-            public void onCancelled(DatabaseError pDatabaseError) {
+                @Override
+                public void onCancelled(DatabaseError pDatabaseError) {
 
-            }
-        };
+                }
+            };
+        }else {
+            Toast.makeText(getActivity(), "Please sign in before rate or view others rates..", Toast.LENGTH_LONG).show();
+            startActivity(new Intent(getActivity(), LoginActivity.class));
+            dismiss();
+            getActivity().finish();
+        }
     }
 
     @Override
