@@ -7,6 +7,7 @@ public class Constants {
     public static final String FIREBASE_RATES = "Rates";
     public static final String FIREBASE_AVG_RATES = "AvgRates";
     public static final String FIREBASE_USERS = "Users";
+    public static final String FIREBASE_FAVORITES = "Favorites";
 
     public static final String SHARED_PREFS = "shared_preferences";
     public static final String SHARED_PREFS_SIGHT = "shared_preferences_sight";
