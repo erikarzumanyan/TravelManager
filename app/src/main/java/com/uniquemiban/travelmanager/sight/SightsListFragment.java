@@ -81,7 +81,6 @@ public class SightsListFragment extends Fragment {
 
     private List<Sight> mSightsList;
     private RecyclerView mSightsRecyclerView;
-    private StaggeredGridLayoutManager mStaggeredGridLayoutManager;
     private LinearLayoutManager mLinearLayoutManager;
     private SightAdapter mAdapter;
 
@@ -270,15 +269,8 @@ public class SightsListFragment extends Fragment {
             }
         });
 
-        mStaggeredGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         mLinearLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
-
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-            mSightsRecyclerView.setLayoutManager(mLinearLayoutManager);
-        }
-        else {
-            mSightsRecyclerView.setLayoutManager(mStaggeredGridLayoutManager);
-        }
+        mSightsRecyclerView.setLayoutManager(mLinearLayoutManager);
 
         mAdapter = new SightAdapter(mSightsList);
         mSightsRecyclerView.setAdapter(mAdapter);

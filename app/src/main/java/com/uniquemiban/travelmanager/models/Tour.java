@@ -19,7 +19,10 @@ public class Tour extends RealmObject {
     private double mLongitude;
 
     public Tour(){
-
+        mName = "";
+        mAbout = "";
+        mCategory = "";
+        mTourOperatorName = "";
     }
 
 

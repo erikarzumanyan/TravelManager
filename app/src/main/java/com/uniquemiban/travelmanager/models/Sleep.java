@@ -23,7 +23,10 @@ public class Sleep extends RealmObject {
 
 
     public Sleep(){
-
+        mName = "";
+        mAbout = "";
+        mCategory = "";
+        mLocation = "";
     }
 
     public String getCategory() {

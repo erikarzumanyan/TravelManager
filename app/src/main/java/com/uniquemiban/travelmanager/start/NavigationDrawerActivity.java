@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.location.Location;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,7 +30,6 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.FusedLocationProviderApi;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -37,6 +38,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
 import com.uniquemiban.travelmanager.eat.EatListFragment;
 import com.uniquemiban.travelmanager.sleep.SleepListFragment;
 import com.uniquemiban.travelmanager.tour.TourListFragment;
@@ -89,11 +92,73 @@ public class NavigationDrawerActivity extends AppCompatActivity
             finish();
         }
 
-        SharedPreferences userPrefs = getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE);
+        final SharedPreferences userPrefs = getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE);
         if (user != null && userPrefs != null) {
-            View header = ((NavigationView) findViewById(R.id.nav_view)).getHeaderView(0);
-            ((TextView) header.findViewById(R.id.text_view_user_name_nav_header)).setText(userPrefs.getString(LoginActivity.SHARED_NAME, ""));
+            final View header = ((NavigationView) findViewById(R.id.nav_view)).getHeaderView(0);
             ((TextView) header.findViewById(R.id.text_view_email_nav_header)).setText(user.getEmail());
+
+            String name = userPrefs.getString(LoginActivity.SHARED_NAME, "");
+
+            if(!TextUtils.isEmpty(name)){
+                ((TextView) header.findViewById(R.id.text_view_user_name_nav_header)).setText(name);
+            } else{
+                final DatabaseReference nameReference = FirebaseDatabase.getInstance().getReference().child("Users").child(user.getUid()).child("Name");
+
+                nameReference.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot pDataSnapshot) {
+                        if(pDataSnapshot != null){
+                            String name = pDataSnapshot.getValue(String.class);
+                            userPrefs.edit().putString(LoginActivity.SHARED_NAME, name).commit();
+                            ((TextView) header.findViewById(R.id.text_view_user_name_nav_header)).setText(name);
+                        }
+
+                        nameReference.removeEventListener(this);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError pDatabaseError) {
+                        nameReference.removeEventListener(this);
+                    }
+                });
+            }
+
+            String photoUrl = userPrefs.getString(LoginActivity.SHARED_PHOTO_URL, "");
+            final RoundedImageView headImage = (RoundedImageView) header.findViewById(R.id.image_view_profile_pic_nav_header);
+            if(!TextUtils.isEmpty(photoUrl)){
+
+                Picasso.with(this)
+                        .load(photoUrl)
+                        .resize(200, 200)
+                        .centerCrop()
+                        .into(headImage);
+            } else {
+                final DatabaseReference photoReference = FirebaseDatabase.getInstance().getReference().child("Users").child(user.getUid()).child("PhotoUrl");
+
+                photoReference.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot pDataSnapshot) {
+                        if(pDataSnapshot != null){
+                            String url = pDataSnapshot.getValue(String.class);
+
+                            userPrefs.edit().putString(LoginActivity.SHARED_PHOTO_URL, pDataSnapshot.getValue(String.class)).commit();
+
+                            Picasso.with(NavigationDrawerActivity.this)
+                                    .load(url)
+                                    .resize(200, 200)
+                                    .centerCrop()
+                                    .into(headImage);
+                        }
+
+                        photoReference.removeEventListener(this);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError pDatabaseError) {
+                        photoReference.removeEventListener(this);
+                    }
+                });
+            }
         }
 
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -229,14 +294,26 @@ public class NavigationDrawerActivity extends AppCompatActivity
         } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_sign_in) {
+            View header = ((NavigationView) findViewById(R.id.nav_view)).getHeaderView(0);
+            header.findViewById(R.id.image_view_profile_pic_nav_header).setVisibility(View.VISIBLE);
+
             getSharedPreferences(Constants.SHARED_PREFS, MODE_PRIVATE).edit().putBoolean(LoginActivity.SHARED_SKIP, false).commit();
             startActivity(new Intent(this, LoginActivity.class));
             finish();
         } else if (id == R.id.nav_sign_out) {
+            String photoUrl = getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE).getString(LoginActivity.SHARED_PHOTO_URL, "");
+            if(photoUrl != null)
+                Picasso.with(this).invalidate(photoUrl);
+
+            getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE).edit().putString(LoginActivity.SHARED_PHOTO_URL, "").commit();
+
+            View header = ((NavigationView) findViewById(R.id.nav_view)).getHeaderView(0);
+            header.findViewById(R.id.image_view_profile_pic_nav_header).setVisibility(View.INVISIBLE);
+
             FirebaseAuth.getInstance().signOut();
             getSharedPreferences(Constants.SHARED_PREFS, MODE_PRIVATE).edit().putBoolean(LoginActivity.SHARED_SKIP, false).commit();
             getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE).edit().putString(LoginActivity.SHARED_NAME, "").commit();
-            View header = ((NavigationView) findViewById(R.id.nav_view)).getHeaderView(0);
+
             ((TextView) header.findViewById(R.id.text_view_user_name_nav_header)).setText("");
             ((TextView) header.findViewById(R.id.text_view_email_nav_header)).setText("");
         }

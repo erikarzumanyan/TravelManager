@@ -18,7 +18,13 @@ public class Eat extends RealmObject {
     private double mLongitude;
     private double mLatitude;
     private String mLocation;
-    private String mDistance;
+
+    public Eat(){
+        mName = "";
+        mAbout = "";
+        mCategory = "";
+        mLocation = "";
+    }
 
     public String getAbout() {
         return mAbout;
@@ -26,14 +32,6 @@ public class Eat extends RealmObject {
 
     public void setAbout(String pAbout) {
         mAbout = pAbout;
-    }
-
-    public String getDistance() {
-        return mDistance;
-    }
-
-    public void setDistance(String pDistance) {
-        mDistance = pDistance;
     }
 
     public String getId() {

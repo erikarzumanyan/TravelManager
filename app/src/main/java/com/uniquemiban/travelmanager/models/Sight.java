@@ -22,20 +22,10 @@ public class Sight extends RealmObject {
     private double mLatitude;
 
     public Sight(){
-
-    }
-
-    public Sight(String pAbout, String pCategory, String pId, double pLatitude, String pLocation, double pLongitude, String pName, String pPhoto1Url, String pPhoto2Url, String pPhotoUrl) {
-        mAbout = pAbout;
-        mCategory = pCategory;
-        mId = pId;
-        mLatitude = pLatitude;
-        mLocation = pLocation;
-        mLongitude = pLongitude;
-        mName = pName;
-        mPhoto1Url = pPhoto1Url;
-        mPhoto2Url = pPhoto2Url;
-        mPhotoUrl = pPhotoUrl;
+        mName = "";
+        mAbout = "";
+        mCategory = "";
+        mLocation = "";
     }
 
     public String getAbout() {

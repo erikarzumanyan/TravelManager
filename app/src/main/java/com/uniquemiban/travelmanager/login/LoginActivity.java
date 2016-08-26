@@ -69,10 +69,25 @@ public class LoginActivity extends AppCompatActivity {
                                     final DatabaseReference ref = FirebaseDatabase.getInstance().getReference()
                                             .child(Constants.FIREBASE_USERS).child(user.getUid()).child("Name");
 
+                                    final DatabaseReference refPhoto = FirebaseDatabase.getInstance().getReference()
+                                            .child(Constants.FIREBASE_USERS).child(user.getUid()).child("PhotoUrl");
+
                                     ref.addValueEventListener(new ValueEventListener() {
                                         @Override
                                         public void onDataChange(DataSnapshot pDataSnapshot) {
                                             getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE).edit().putString(SHARED_NAME, pDataSnapshot.getValue(String.class)).commit();
+                                            refPhoto.addValueEventListener(new ValueEventListener() {
+                                                @Override
+                                                public void onDataChange(DataSnapshot pDataSnapshot) {
+                                                    getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE).edit().putString(SHARED_PHOTO_URL, pDataSnapshot.getValue(String.class)).commit();
+                                                    refPhoto.removeEventListener(this);
+                                                }
+
+                                                @Override
+                                                public void onCancelled(DatabaseError pDatabaseError) {
+
+                                                }
+                                            });
                                             ref.removeEventListener(this);
                                             startActivity(new Intent(LoginActivity.this, NavigationDrawerActivity.class));
                                             finish();
