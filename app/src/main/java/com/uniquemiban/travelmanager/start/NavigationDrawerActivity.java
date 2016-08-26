@@ -17,7 +17,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Display;
@@ -39,6 +38,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.uniquemiban.travelmanager.eat.EatListFragment;
+import com.uniquemiban.travelmanager.sleep.SleepListFragment;
+import com.uniquemiban.travelmanager.tour.TourListFragment;
 import com.uniquemiban.travelmanager.utils.Constants;
 import com.uniquemiban.travelmanager.R;
 import com.uniquemiban.travelmanager.login.LoginActivity;
@@ -71,15 +72,6 @@ public class NavigationDrawerActivity extends AppCompatActivity
         int height = size.y;
 
         mWidth = Math.min(width, height);
-
-//        //Check if google play services is up to date
-//        final int playServicesStatus = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this);
-//        if(playServicesStatus != ConnectionResult.SUCCESS){
-//            //If google play services in not available show an error dialog and return
-//            final Dialog errorDialog = GoogleApiAvailability.getInstance().getErrorDialog(this, playServicesStatus, 0, null);
-//            errorDialog.show();
-//            return;
-//        }
 
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -123,14 +115,15 @@ public class NavigationDrawerActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-        mGoogleApiClient.connect();
     }
 
     @Override
     protected void onStop() {
-        mGoogleApiClient.disconnect();
         super.onStop();
     }
+
+    public void connect(){mGoogleApiClient.connect();}
+    public void disconnect(){mGoogleApiClient.disconnect();}
 
     public Location getLastLocation(){
         return mLastLocation;
@@ -197,9 +190,18 @@ public class NavigationDrawerActivity extends AppCompatActivity
             }
 
         } else if (id == R.id.nav_sleeping) {
+            Fragment fragment = manager.findFragmentByTag(SleepListFragment.FRAGMENT_TAG);
+
+            if (fragment == null) {
+                fragment = new SleepListFragment();
+                manager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                manager.beginTransaction()
+                        .replace(R.id.fragment_container, fragment, SleepListFragment.FRAGMENT_TAG)
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                        .commit();
+            }
 
         } else if (id == R.id.nav_eating) {
-
             Fragment fragment = manager.findFragmentByTag(EatListFragment.FRAGMENT_TAG);
 
             if (fragment == null) {
@@ -212,7 +214,16 @@ public class NavigationDrawerActivity extends AppCompatActivity
             }
 
         } else if (id == R.id.nav_tours) {
+            Fragment fragment = manager.findFragmentByTag(TourListFragment.FRAGMENT_TAG);
 
+            if (fragment == null) {
+                fragment = new TourListFragment();
+                manager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                manager.beginTransaction()
+                        .replace(R.id.fragment_container, fragment, TourListFragment.FRAGMENT_TAG)
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                        .commit();
+            }
         } else if (id == R.id.nav_map) {
 
         } else if (id == R.id.nav_share) {

@@ -64,6 +64,7 @@ public class RegisterActivity extends AppCompatActivity {
                 }
 
                 final FirebaseAuth auth = FirebaseAuth.getInstance();
+
                 auth.createUserWithEmailAndPassword(mEmailEditText.getText().toString(), mPasswordEditText.getText().toString())
                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                             @Override
@@ -71,6 +72,7 @@ public class RegisterActivity extends AppCompatActivity {
                                 if(pTask.isSuccessful()){
                                     FirebaseDatabase.getInstance().getReference().child("Users").child(pTask.getResult().getUser().getUid())
                                                                                     .child("Name").setValue(mNameEditText.getText().toString());
+
 
                                     getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE).edit().putString(LoginActivity.SHARED_NAME, mNameEditText.getText().toString()).commit();
 

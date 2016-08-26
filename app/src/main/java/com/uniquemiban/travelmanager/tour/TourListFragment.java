@@ -1,11 +1,11 @@
-package com.uniquemiban.travelmanager.sight;
+package com.uniquemiban.travelmanager.tour;
+
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -46,13 +46,14 @@ import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 import com.squareup.picasso.Callback;
-import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
-import com.uniquemiban.travelmanager.filter.FilterFragment;
-import com.uniquemiban.travelmanager.utils.Constants;
-import com.uniquemiban.travelmanager.start.NavigationDrawerActivity;
 import com.uniquemiban.travelmanager.R;
+import com.uniquemiban.travelmanager.filter.FilterFragment;
 import com.uniquemiban.travelmanager.models.Sight;
+import com.uniquemiban.travelmanager.models.Tour;
+import com.uniquemiban.travelmanager.sight.SightFragment;
+import com.uniquemiban.travelmanager.start.NavigationDrawerActivity;
+import com.uniquemiban.travelmanager.utils.Constants;
 import com.uniquemiban.travelmanager.utils.Utils;
 
 import org.json.JSONObject;
@@ -66,9 +67,9 @@ import io.realm.Realm;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
 
-public class SightsListFragment extends Fragment {
+public class TourListFragment extends Fragment {
 
-    public static final String FRAGMENT_TAG = "sights_list_fragment";
+    public static final String FRAGMENT_TAG = "tours_list_fragment";
     private static final int LOADING_ITEMS_NUMBER = 5;
     private String mLastItemId = null;
 
@@ -79,11 +80,11 @@ public class SightsListFragment extends Fragment {
     private boolean mLoading = true;
     int mFirstVisibleItemPosition, mVisibleItemCount, mTotalItemCount;
 
-    private List<Sight> mSightsList;
-    private RecyclerView mSightsRecyclerView;
+    private List<Tour> mToursList;
+    private RecyclerView mToursRecyclerView;
     private StaggeredGridLayoutManager mStaggeredGridLayoutManager;
     private LinearLayoutManager mLinearLayoutManager;
-    private SightAdapter mAdapter;
+    private TourAdapter mAdapter;
 
     private DatabaseReference mRef;
     private Query mQuery;
@@ -91,7 +92,7 @@ public class SightsListFragment extends Fragment {
 
     private ChildEventListener mChildEventListener;
 
-
+    private String mSearchByName = null;
     private String mSearch = null;
 
     private Location mLastLocation = null;
@@ -103,68 +104,84 @@ public class SightsListFragment extends Fragment {
 
         NavigationDrawerActivity activity = ((NavigationDrawerActivity)getActivity());
         mLastLocation = activity.getLastLocation();
-        mRadius = activity.getSharedPreferences(Constants.SHARED_PREFS_SIGHT, Context.MODE_PRIVATE).getFloat(Constants.SHARED_PREFS_KEY_RADIUS, -1);
 
-        mRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_SIGHTS).getRef();
+        mRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_TOUR).getRef();
         mRealm = Realm.getDefaultInstance();
 
-        mSightsList = new ArrayList<>();
+        mToursList = new ArrayList<>();
 
         mChildEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot pDataSnapshot, String pS) {
 
-                final Sight s = pDataSnapshot.getValue(Sight.class);
+                final Tour t = pDataSnapshot.getValue(Tour.class);
 
                 if(mLastLocation != null && mRadius > 0
                         && SphericalUtil.computeDistanceBetween(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()),
-                        new LatLng(s.getLatitude(), s.getLongitude())) > mRadius) {
+                        new LatLng(t.getLatitude(), t.getLongitude())) > mRadius) {
 
                     mQuery.removeEventListener(mChildEventListener);
-                    mLastItemId = s.getId();
+                    mLastItemId = t.getId();
                     mQuery = mRef.orderByKey().startAt(mLastItemId).limitToFirst(LOADING_ITEMS_NUMBER);
                     mQuery.addChildEventListener(mChildEventListener);
 
-                } else if(!TextUtils.isEmpty(mSearch) && !s.getName().contains(mSearch)
-                        && !s.getCategory().contains(mSearch) && !s.getLocation().contains(mSearch)) {
+                } else if(!TextUtils.isEmpty(mSearch) && !t.getName().contains(mSearch)
+                  ) {
 
                     mQuery.removeEventListener(mChildEventListener);
-                    mLastItemId = s.getId();
+                    mLastItemId = t.getId();
                     mQuery = mRef.orderByKey().startAt(mLastItemId).limitToFirst(LOADING_ITEMS_NUMBER);
                     mQuery.addChildEventListener(mChildEventListener);
 
                 } else{
 
-                    if (TextUtils.isEmpty(s.getId())) {
+                    if (TextUtils.isEmpty(t.getId())) {
                         String id = pDataSnapshot.getKey();
-                        s.setId(id);
+                        t.setId(id);
                         mRef.child(id).child("id").setValue(id);
                     } else {
                         mRealm = Realm.getDefaultInstance();
 
+//                        mRealm.executeTransactionAsync(new Realm.Transaction() {
+//                            @Override
+//                            public void execute(Realm realm) {
+//                                realm.copyToRealmOrUpdate(s);
+//                            }
+//                        }, new Realm.Transaction.OnSuccess() {
+//                            @Override
+//                            public void onSuccess() {
+//                                updateUI(s);
+//                            }
+//                        });
+
                         mRealm.executeTransaction(new Realm.Transaction() {
                             @Override
                             public void execute(Realm realm) {
-                                realm.copyToRealmOrUpdate(s);
-                                updateUI(s);
+                                realm.copyToRealmOrUpdate(t);
+                                updateUI(t);
                             }
                         });
                     }
                 }
             }
 
+
             @Override
             public void onChildChanged(DataSnapshot pDataSnapshot, String pS) {
-                final Sight s = pDataSnapshot.getValue(Sight.class);
+                final Tour t = pDataSnapshot.getValue(Tour.class);
 
                 mRealm = Realm.getDefaultInstance();
 
-                if(mRealm.where(Sight.class).equalTo("mId", s.getId()).findFirst() != null) {
-                    mRealm.executeTransaction(new Realm.Transaction() {
+                if(mRealm.where(Tour.class).equalTo("mId", t.getId()).findFirst()!= null) {
+                    mRealm.executeTransactionAsync(new Realm.Transaction() {
                         @Override
                         public void execute(Realm realm) {
-                            realm.copyToRealmOrUpdate(s);
-                            updateUI(s);
+                            realm.copyToRealmOrUpdate(t);
+                        }
+                    }, new Realm.Transaction.OnSuccess() {
+                        @Override
+                        public void onSuccess() {
+                            updateUI(t);
                         }
                     });
                 }
@@ -172,23 +189,25 @@ public class SightsListFragment extends Fragment {
 
             @Override
             public void onChildRemoved(DataSnapshot pDataSnapshot) {
-                final Sight s = pDataSnapshot.getValue(Sight.class);
+                final Tour t = pDataSnapshot.getValue(Tour.class);
+
+                if(!TextUtils.isEmpty(mSearchByName) && !t.getName().contains(mSearchByName))
+                    return;
 
                 mRealm = Realm.getDefaultInstance();
 
                 mRealm.executeTransactionAsync(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
-                        Sight sight = realm.where(Sight.class).equalTo("mId", s.getId()).findFirst();
-                        sight.deleteFromRealm();
+                        Tour tour = realm.where(Tour.class).equalTo("mId", t.getId()).findFirst();
+                        tour.deleteFromRealm();
                     }
                 }, new Realm.Transaction.OnSuccess() {
                     @Override
                     public void onSuccess() {
-                        deleteFromList(s);
-                        Picasso.with(getActivity().getApplicationContext()).invalidate(s.getPhotoUrl());
-                        Picasso.with(getActivity().getApplicationContext()).invalidate(s.getPhoto1Url());
-                        Picasso.with(getActivity().getApplicationContext()).invalidate(s.getPhoto2Url());
+                        deleteFromList(t);
+                        Picasso.with(getActivity().getApplicationContext()).invalidate(t.getPhotoUrl());
+
                     }
                 });
             }
@@ -209,7 +228,7 @@ public class SightsListFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_sights_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_tour_list, container, false);
 
         setHasOptionsMenu(true);
 
@@ -221,14 +240,14 @@ public class SightsListFragment extends Fragment {
 
         Toolbar toolbar = activity.getToolbar();
 
-        toolbar.setTitle("Sights");
+        toolbar.setTitle("Tours");
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 activity, activity.getDrawer(), toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         activity.getDrawer().setDrawerListener(toggle);
         toggle.syncState();
 
-        mSightsRecyclerView = (RecyclerView) view.findViewById(R.id.fragment_sights_list_recycler_view);
-        mSightsRecyclerView.setItemAnimator(new RecyclerView.ItemAnimator() {
+        mToursRecyclerView = (RecyclerView) view.findViewById(R.id.fragment_tours_list_recycler_view);
+        mToursRecyclerView.setItemAnimator(new RecyclerView.ItemAnimator() {
             @Override
             public boolean animateDisappearance(@NonNull RecyclerView.ViewHolder viewHolder, @NonNull ItemHolderInfo preLayoutInfo, @Nullable ItemHolderInfo postLayoutInfo) {
                 return false;
@@ -274,14 +293,14 @@ public class SightsListFragment extends Fragment {
         mLinearLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
 
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-            mSightsRecyclerView.setLayoutManager(mLinearLayoutManager);
+            mToursRecyclerView.setLayoutManager(mLinearLayoutManager);
         }
         else {
-            mSightsRecyclerView.setLayoutManager(mStaggeredGridLayoutManager);
+            mToursRecyclerView.setLayoutManager(mStaggeredGridLayoutManager);
         }
 
-        mAdapter = new SightAdapter(mSightsList);
-        mSightsRecyclerView.setAdapter(mAdapter);
+        mAdapter = new TourAdapter(mToursList);
+        mToursRecyclerView.setAdapter(mAdapter);
 
         return view;
     }
@@ -289,8 +308,6 @@ public class SightsListFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-
-        ((NavigationDrawerActivity)getActivity()).connect();
 
         if (mRealm.isClosed())
             mRealm = Realm.getDefaultInstance();
@@ -300,7 +317,7 @@ public class SightsListFragment extends Fragment {
 
         final ActionBar bar = ((NavigationDrawerActivity)getActivity()).getSupportActionBar();
 
-        mSightsRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+        mToursRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
 
@@ -329,10 +346,10 @@ public class SightsListFragment extends Fragment {
                         mFirstVisibleItemPosition = mLinearLayoutManager.findFirstVisibleItemPosition();
 
                         if (mLoading) {
-                            if ((mVisibleItemCount + mFirstVisibleItemPosition + 1) >= mRealm.where(Sight.class).findAll().size()
+                            if ((mVisibleItemCount + mFirstVisibleItemPosition + 1) >= mRealm.where(Tour.class).findAll().size()
                                     && (mVisibleItemCount + mFirstVisibleItemPosition + 1) >= mTotalItemCount) {
                                 mQuery.removeEventListener(mChildEventListener);
-                                mQuery = mRef.orderByKey().startAt(mSightsList.get(mSightsList.size() - 1).getId()).limitToFirst(LOADING_ITEMS_NUMBER);
+                                mQuery = mRef.orderByKey().startAt(mToursList.get(mToursList.size() - 1).getId()).limitToFirst(LOADING_ITEMS_NUMBER);
                                 mQuery.addChildEventListener(mChildEventListener);
                             }
                         }
@@ -340,36 +357,34 @@ public class SightsListFragment extends Fragment {
                 }
             }
         });
-
-        searchItemsByRadius();
     }
 
-    private void deleteFromList(Sight pSight) {
+    private void deleteFromList(Tour pTour) {
         int index = -1;
-        String id = pSight.getId();
-        for (int i = 0; i < mSightsList.size(); ++i) {
-            if (mSightsList.get(i).getId().equals(id))
+        String id = pTour.getId();
+        for (int i = 0; i < mToursList.size(); ++i) {
+            if (mToursList.get(i).getId().equals(id))
                 index = i;
         }
         if (index != -1) {
-            mSightsList.remove(index);
-            mAdapter.notifyItemRangeChanged(index, mSightsList.size() - 1);
+            mToursList.remove(index);
+            mAdapter.notifyItemRangeChanged(index, mToursList.size() - 1);
         }
     }
 
-    private void updateUI(Sight pSight) {
+    private void updateUI(Tour pTour) {
         int index = -1;
-        String id = pSight.getId();
-        for (int i = 0; i < mSightsList.size(); ++i) {
-            if (mSightsList.get(i).getId().equals(id))
+        String id = pTour.getId();
+        for (int i = 0; i < mToursList.size(); ++i) {
+            if (mToursList.get(i).getId().equals(id))
                 index = i;
         }
         if (index == -1) {
-            mSightsList.add(pSight);
-            mAdapter.notifyItemChanged(mSightsList.size() - 1);
+            mToursList.add(pTour);
+            mAdapter.notifyItemChanged(mToursList.size() - 1);
         } else {
-            mSightsList.remove(index);
-            mSightsList.add(index, pSight);
+            mToursList.add(index, pTour);
+            mToursList.remove(index + 1);
             mAdapter.notifyItemChanged(index);
         }
     }
@@ -380,20 +395,20 @@ public class SightsListFragment extends Fragment {
     }
 
     public void searchItemsByRadius(){
-        RealmQuery<Sight> realmQuery = null;
+        RealmQuery<Tour> realmQuery = null;
 
         if(mSearch != null){
-            realmQuery = mRealm.where(Sight.class).contains("mName", mSearch, Case.INSENSITIVE);
+            realmQuery = mRealm.where(Tour.class).contains("mName", mSearch, Case.INSENSITIVE);
             realmQuery = realmQuery.or().contains("mCategory", mSearch, Case.INSENSITIVE);
-            realmQuery = realmQuery.or().contains("mLocation", mSearch, Case.INSENSITIVE);
+            realmQuery = realmQuery.or().contains("mAbout", mSearch, Case.INSENSITIVE);
         } else {
-            realmQuery = mRealm.where(Sight.class);
+            realmQuery = mRealm.where(Tour.class);
         }
 
         NavigationDrawerActivity activity = ((NavigationDrawerActivity)getActivity());
         mLastLocation = activity.getLastLocation();
 
-        SharedPreferences prefs = activity.getSharedPreferences(Constants.SHARED_PREFS_SIGHT, Context.MODE_PRIVATE);
+        SharedPreferences prefs = activity.getSharedPreferences(Constants.SHARED_PREFS_TOURS, Context.MODE_PRIVATE);
         mRadius = prefs.getFloat(Constants.SHARED_PREFS_KEY_RADIUS, -1);
 
         if (mLastLocation == null && !TextUtils.isEmpty(prefs.getString(Constants.SHARED_PREFS_KEY_LAST_LAT, ""))) {
@@ -402,28 +417,26 @@ public class SightsListFragment extends Fragment {
             mLastLocation.setLongitude(Double.valueOf(prefs.getString(Constants.SHARED_PREFS_KEY_LAST_LONG, "")));
         }
 
-        RealmResults<Sight> results = realmQuery.findAll();
-        mSightsList.clear();
-        for (Sight s: results){
+        RealmResults<Tour> results = realmQuery.findAll();
+        mToursList.clear();
+        for (Tour t: results){
             if(mLastLocation != null && mRadius > 0
                     && SphericalUtil.computeDistanceBetween(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()),
-                    new LatLng(s.getLatitude(), s.getLongitude())) > mRadius)
+                    new LatLng(t.getLatitude(), t.getLongitude())) > mRadius)
                 continue;
-            mSightsList.add(s);
+
+            mToursList.add(t);
         }
 
         mAdapter.notifyDataSetChanged();
 
-        mRef.removeEventListener(mChildEventListener);
         mRef.addChildEventListener(mChildEventListener);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        ((NavigationDrawerActivity)getActivity()).disconnect();
         mRealm.close();
-        mRef.removeEventListener(mChildEventListener);
         mQuery.removeEventListener(mChildEventListener);
     }
 
@@ -451,51 +464,46 @@ public class SightsListFragment extends Fragment {
                 }
             });
         } else if(id == R.id.action_filter){
-            FilterFragment fragment = FilterFragment.newInstance(Constants.SHARED_PREFS_SIGHT);
+            FilterFragment fragment = FilterFragment.newInstance(Constants.SHARED_PREFS_TOURS);
             fragment.show(((NavigationDrawerActivity)getActivity()).getSupportFragmentManager(), FilterFragment.FRAGMENT_TAG);
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private class SightHolder extends RecyclerView.ViewHolder {
+    private class TourHolder extends RecyclerView.ViewHolder {
 
-        private Sight mSight;
+        private Tour mTour;
 
         public ImageView mPhotoImageView;
         public TextView mNameTextView;
-        public TextView mCategoryTextView;
-        public TextView mLocationTextView;
-        public TextView mDistanceTextView;
+        public TextView mTourOperatorNametextView;
 
         public ProgressBar mProgressBar;
 
-        public SightHolder(View itemView) {
+        public TourHolder(View itemView) {
             super(itemView);
 
-            mPhotoImageView = (ImageView) itemView.findViewById(R.id.image_view_sight);
-
-            mCategoryTextView = (TextView) itemView.findViewById(R.id.text_view_category);
-            mNameTextView = (TextView) itemView.findViewById(R.id.text_view_name);
-            mLocationTextView = (TextView) itemView.findViewById(R.id.text_view_location);
-            mDistanceTextView = (TextView) itemView.findViewById(R.id.text_view_distance);
+            mPhotoImageView = (ImageView) itemView.findViewById(R.id.image_view_tour);
+            mNameTextView = (TextView) itemView.findViewById(R.id.text_view_tour);
+            mTourOperatorNametextView = (TextView) itemView.findViewById(R.id.text_view_distance_tour_operator);
 
             mProgressBar = (ProgressBar)itemView.findViewById(R.id.progress_bar_item_sight);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View pView) {
-                    if (mSight != null) {
+                    if (mTour != null) {
 
                         FragmentManager manager = getActivity().getSupportFragmentManager();
 
-                        Fragment fragment = manager.findFragmentByTag(SightFragment.FRAGMENT_TAG);
+                        Fragment fragment = manager.findFragmentByTag(TourFragment.FRAGMENT_TAG);
 
                         if (fragment == null) {
-                            fragment = SightFragment.newInstance(mSight.getId());
+                            fragment = TourFragment.newInstance(mTour.getId());
                             manager.beginTransaction()
-                                    .replace(R.id.fragment_container, fragment, SightFragment.FRAGMENT_TAG)
+                                    .replace(R.id.fragment_container, fragment, TourFragment.FRAGMENT_TAG)
                                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                                    .addToBackStack(SightFragment.FRAGMENT_TAG)
+                                    .addToBackStack(TourFragment.FRAGMENT_TAG)
                                     .commit();
                         }
                     }
@@ -503,88 +511,64 @@ public class SightsListFragment extends Fragment {
             });
         }
 
-        public void bindSight(Sight pSight) {
-            mSight = pSight;
+        public void bindTour(Tour pTour) {
+            mTour = pTour;
 
-            if (mSight.getCategory() != null)
-                mCategoryTextView.setText(mSight.getCategory());
-            if (mSight.getName() != null)
-                mNameTextView.setText(mSight.getName());
-            if (mSight.getLocation() != null)
-                mLocationTextView.setText("Location: " + mSight.getLocation());
 
-            mDistanceTextView.setText("");
-
-            if(mLastLocation != null) {
-                String url = "https://maps.googleapis.com/maps/api/distancematrix/json";
-                AsyncHttpClient client = new AsyncHttpClient();
-                RequestParams params = new RequestParams();
-                params.put("origins", mLastLocation.getLatitude() + "," + mLastLocation.getLongitude());
-                params.put("destinations", mSight.getLatitude() + "," + mSight.getLongitude());
-                params.put("key", Constants.GOOGLE_MATRIX_API_KEY);
-
-                client.get(url, params, new JsonHttpResponseHandler(){
-                    @Override
-                    public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                        String distance = Utils.getDistance(response);
-                        if(!TextUtils.isEmpty(distance))
-                            mDistanceTextView.setText("Distance: " + Utils.getDistance(response));
-                    }
-                });
-            }
-
-            mProgressBar.setVisibility(View.VISIBLE);
+            if (mTour.getName() != null)
+                mNameTextView.setText(mTour.getName());
 
             Picasso.with(getActivity().getApplicationContext())
-                    .load(mSight.getPhotoUrl())
+                    .load(mTour.getPhotoUrl())
                     .resize(((NavigationDrawerActivity)getActivity()).getWidth(), 0)
                     .onlyScaleDown()
                     .placeholder(R.drawable.placeholder)
                     .into(mPhotoImageView, new Callback() {
                         @Override
                         public void onSuccess() {
-                            mProgressBar.setVisibility(View.GONE);
+
                         }
 
                         @Override
                         public void onError() {
                             Toast.makeText(getActivity(), "Download error", Toast.LENGTH_SHORT).show();
-                            mProgressBar.setVisibility(View.GONE);
+
                         }
                     });
         }
     }
 
-    private class SightAdapter extends RecyclerView.Adapter<SightHolder> {
+    private class TourAdapter extends RecyclerView.Adapter<TourHolder> {
 
-        private List<Sight> mSights;
+        private List<Tour> mTours;
 
-        public SightAdapter(List<Sight> pSights) {
-            mSights = pSights;
+        public TourAdapter(List<Tour> pTours) {
+            mTours = pTours;
         }
 
         @Override
-        public SightHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        public TourHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater inflater = LayoutInflater.from(getActivity());
-            View v = inflater.inflate(R.layout.item_sight, parent, false);
+            View v = inflater.inflate(R.layout.items_tours, parent, false);
 
             YoYo.with(Techniques.FadeInUp)
                     .duration(700)
                     .playOn(v);
 
-            return new SightHolder(v);
+            return new TourHolder(v);
         }
 
         @Override
-        public void onBindViewHolder(SightHolder holder, int position) {
-            Sight sight = mSights.get(position);
-            holder.bindSight(sight);
+        public void onBindViewHolder(TourHolder holder, int position) {
+            Tour tour = mTours.get(position);
+            holder.bindTour(tour);
         }
 
         @Override
         public int getItemCount() {
-            return mSights.size();
+            return mTours.size();
         }
 
     }
 }
+
