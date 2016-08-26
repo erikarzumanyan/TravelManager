@@ -18,18 +18,18 @@
         android:layout_height="wrap_content">
 
         <ImageView
-            android:id="@+id/image_view_eat"
+            android:id="@+id/image_view_sleep"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:scaleType="centerCrop"
-            android:src="@drawable/placeholder"/>
+            android:src="@drawable/e"/>
 
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_alignTop="@+id/image_view_eat"
-            android:layout_alignBottom="@id/image_view_eat"
+            android:layout_alignTop="@+id/image_view_sleep"
+            android:layout_alignBottom="@id/image_view_sleep"
             android:gravity="center_horizontal"
             android:layout_centerInParent="true"
             android:background="#45000000">
@@ -40,12 +40,13 @@
                 android:layout_height="match_parent"
                 android:gravity="center">
 
+
                 <TextView
-                    android:id="@+id/text_view_eat"
+                    android:id="@+id/text_view_name_sleep"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColor="@color/background_floating_material_light"
-                    android:layout_alignBottom="@+id/image_view_eat"
+                    android:layout_alignBottom="@+id/image_view_sleep"
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentStart="true"
                     android:text="Lastiver"
@@ -58,7 +59,7 @@
                     android:gravity="center_horizontal">
 
                     <TextView
-                        android:id="@+id/text_view_location_eat"
+                        android:id="@+id/text_view_location"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="@color/background_floating_material_light"

@@ -16,7 +16,9 @@ import android.widget.EditText;
 import com.uniquemiban.travelmanager.R;
 import com.uniquemiban.travelmanager.eat.EatListFragment;
 import com.uniquemiban.travelmanager.sight.SightsListFragment;
+import com.uniquemiban.travelmanager.sleep.SleepListFragment;
 import com.uniquemiban.travelmanager.start.NavigationDrawerActivity;
+import com.uniquemiban.travelmanager.tour.TourListFragment;
 import com.uniquemiban.travelmanager.utils.Constants;
 
 public class FilterFragment extends DialogFragment {
@@ -50,10 +52,8 @@ public class FilterFragment extends DialogFragment {
 
         final EditText radiusEditText = (EditText)v.findViewById(R.id.edit_text_radius);
 
-        final NavigationDrawerActivity activity = ((NavigationDrawerActivity)getActivity());
 
-        SharedPreferences prefs = activity.getSharedPreferences(Constants.SHARED_PREFS_SIGHT, Context.MODE_PRIVATE);
-        float r = prefs.getFloat(Constants.SHARED_PREFS_KEY_RADIUS, -1);
+        float r = mPrefs.getFloat(Constants.SHARED_PREFS_KEY_RADIUS, -1);
         if(r != -1)
             radiusEditText.setText("" + r/1000);
 
@@ -72,11 +72,16 @@ public class FilterFragment extends DialogFragment {
                         if(radius != null)
                             mPrefs.edit().putFloat(Constants.SHARED_PREFS_KEY_RADIUS, radius*1000).commit();
 
-                        FragmentManager manager = activity.getSupportFragmentManager();
+                        FragmentManager manager = ((NavigationDrawerActivity)getActivity()).getSupportFragmentManager();
 
                         if(manager.findFragmentByTag(EatListFragment.FRAGMENT_TAG) != null){
                             ((EatListFragment)manager.findFragmentByTag(EatListFragment.FRAGMENT_TAG)).searchItemsByRadius();
-                        } else {
+                        } else if(manager.findFragmentByTag(SleepListFragment.FRAGMENT_TAG) != null){
+                            ((SleepListFragment)manager.findFragmentByTag(SleepListFragment.FRAGMENT_TAG)).searchItemsByRadius();
+                        } else if(manager.findFragmentByTag(TourListFragment.FRAGMENT_TAG) != null){
+                            ((TourListFragment)manager.findFragmentByTag(TourListFragment.FRAGMENT_TAG)).searchItemsByRadius();
+                        }
+                        else {
                             ((SightsListFragment)manager.findFragmentByTag(SightsListFragment.FRAGMENT_TAG)).searchItemsByRadius();
                         }
                     }

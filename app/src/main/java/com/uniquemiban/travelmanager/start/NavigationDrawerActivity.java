@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.location.Location;
 import android.os.Bundle;
@@ -17,9 +18,9 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,7 +30,6 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.FusedLocationProviderApi;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -38,7 +38,11 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
 import com.uniquemiban.travelmanager.eat.EatListFragment;
+import com.uniquemiban.travelmanager.sleep.SleepListFragment;
+import com.uniquemiban.travelmanager.tour.TourListFragment;
 import com.uniquemiban.travelmanager.utils.Constants;
 import com.uniquemiban.travelmanager.R;
 import com.uniquemiban.travelmanager.login.LoginActivity;
@@ -72,15 +76,6 @@ public class NavigationDrawerActivity extends AppCompatActivity
 
         mWidth = Math.min(width, height);
 
-//        //Check if google play services is up to date
-//        final int playServicesStatus = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this);
-//        if(playServicesStatus != ConnectionResult.SUCCESS){
-//            //If google play services in not available show an error dialog and return
-//            final Dialog errorDialog = GoogleApiAvailability.getInstance().getErrorDialog(this, playServicesStatus, 0, null);
-//            errorDialog.show();
-//            return;
-//        }
-
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
                     .addConnectionCallbacks(this)
@@ -97,11 +92,73 @@ public class NavigationDrawerActivity extends AppCompatActivity
             finish();
         }
 
-        SharedPreferences userPrefs = getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE);
+        final SharedPreferences userPrefs = getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE);
         if (user != null && userPrefs != null) {
-            View header = ((NavigationView) findViewById(R.id.nav_view)).getHeaderView(0);
-            ((TextView) header.findViewById(R.id.text_view_user_name_nav_header)).setText(userPrefs.getString(LoginActivity.SHARED_NAME, ""));
+            final View header = ((NavigationView) findViewById(R.id.nav_view)).getHeaderView(0);
             ((TextView) header.findViewById(R.id.text_view_email_nav_header)).setText(user.getEmail());
+
+            String name = userPrefs.getString(LoginActivity.SHARED_NAME, "");
+
+            if(!TextUtils.isEmpty(name)){
+                ((TextView) header.findViewById(R.id.text_view_user_name_nav_header)).setText(name);
+            } else{
+                final DatabaseReference nameReference = FirebaseDatabase.getInstance().getReference().child("Users").child(user.getUid()).child("Name");
+
+                nameReference.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot pDataSnapshot) {
+                        if(pDataSnapshot != null){
+                            String name = pDataSnapshot.getValue(String.class);
+                            userPrefs.edit().putString(LoginActivity.SHARED_NAME, name).commit();
+                            ((TextView) header.findViewById(R.id.text_view_user_name_nav_header)).setText(name);
+                        }
+
+                        nameReference.removeEventListener(this);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError pDatabaseError) {
+                        nameReference.removeEventListener(this);
+                    }
+                });
+            }
+
+            String photoUrl = userPrefs.getString(LoginActivity.SHARED_PHOTO_URL, "");
+            final RoundedImageView headImage = (RoundedImageView) header.findViewById(R.id.image_view_profile_pic_nav_header);
+            if(!TextUtils.isEmpty(photoUrl)){
+
+                Picasso.with(this)
+                        .load(photoUrl)
+                        .resize(200, 200)
+                        .centerCrop()
+                        .into(headImage);
+            } else {
+                final DatabaseReference photoReference = FirebaseDatabase.getInstance().getReference().child("Users").child(user.getUid()).child("PhotoUrl");
+
+                photoReference.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot pDataSnapshot) {
+                        if(pDataSnapshot != null){
+                            String url = pDataSnapshot.getValue(String.class);
+
+                            userPrefs.edit().putString(LoginActivity.SHARED_PHOTO_URL, pDataSnapshot.getValue(String.class)).commit();
+
+                            Picasso.with(NavigationDrawerActivity.this)
+                                    .load(url)
+                                    .resize(200, 200)
+                                    .centerCrop()
+                                    .into(headImage);
+                        }
+
+                        photoReference.removeEventListener(this);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError pDatabaseError) {
+                        photoReference.removeEventListener(this);
+                    }
+                });
+            }
         }
 
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -123,14 +180,15 @@ public class NavigationDrawerActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-        mGoogleApiClient.connect();
     }
 
     @Override
     protected void onStop() {
-        mGoogleApiClient.disconnect();
         super.onStop();
     }
+
+    public void connect(){mGoogleApiClient.connect();}
+    public void disconnect(){mGoogleApiClient.disconnect();}
 
     public Location getLastLocation(){
         return mLastLocation;
@@ -197,9 +255,18 @@ public class NavigationDrawerActivity extends AppCompatActivity
             }
 
         } else if (id == R.id.nav_sleeping) {
+            Fragment fragment = manager.findFragmentByTag(SleepListFragment.FRAGMENT_TAG);
+
+            if (fragment == null) {
+                fragment = new SleepListFragment();
+                manager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                manager.beginTransaction()
+                        .replace(R.id.fragment_container, fragment, SleepListFragment.FRAGMENT_TAG)
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                        .commit();
+            }
 
         } else if (id == R.id.nav_eating) {
-
             Fragment fragment = manager.findFragmentByTag(EatListFragment.FRAGMENT_TAG);
 
             if (fragment == null) {
@@ -212,20 +279,41 @@ public class NavigationDrawerActivity extends AppCompatActivity
             }
 
         } else if (id == R.id.nav_tours) {
+            Fragment fragment = manager.findFragmentByTag(TourListFragment.FRAGMENT_TAG);
 
+            if (fragment == null) {
+                fragment = new TourListFragment();
+                manager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                manager.beginTransaction()
+                        .replace(R.id.fragment_container, fragment, TourListFragment.FRAGMENT_TAG)
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                        .commit();
+            }
         } else if (id == R.id.nav_map) {
 
         } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_sign_in) {
+            View header = ((NavigationView) findViewById(R.id.nav_view)).getHeaderView(0);
+            header.findViewById(R.id.image_view_profile_pic_nav_header).setVisibility(View.VISIBLE);
+
             getSharedPreferences(Constants.SHARED_PREFS, MODE_PRIVATE).edit().putBoolean(LoginActivity.SHARED_SKIP, false).commit();
             startActivity(new Intent(this, LoginActivity.class));
             finish();
         } else if (id == R.id.nav_sign_out) {
+            String photoUrl = getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE).getString(LoginActivity.SHARED_PHOTO_URL, "");
+            if(photoUrl != null)
+                Picasso.with(this).invalidate(photoUrl);
+
+            getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE).edit().putString(LoginActivity.SHARED_PHOTO_URL, "").commit();
+
+            View header = ((NavigationView) findViewById(R.id.nav_view)).getHeaderView(0);
+            header.findViewById(R.id.image_view_profile_pic_nav_header).setVisibility(View.INVISIBLE);
+
             FirebaseAuth.getInstance().signOut();
             getSharedPreferences(Constants.SHARED_PREFS, MODE_PRIVATE).edit().putBoolean(LoginActivity.SHARED_SKIP, false).commit();
             getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE).edit().putString(LoginActivity.SHARED_NAME, "").commit();
-            View header = ((NavigationView) findViewById(R.id.nav_view)).getHeaderView(0);
+
             ((TextView) header.findViewById(R.id.text_view_user_name_nav_header)).setText("");
             ((TextView) header.findViewById(R.id.text_view_email_nav_header)).setText("");
         }

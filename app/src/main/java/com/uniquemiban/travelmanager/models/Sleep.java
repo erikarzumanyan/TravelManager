@@ -1,37 +1,40 @@
 package com.uniquemiban.travelmanager.models;
 
+
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
-public class Eat extends RealmObject {
+public class Sleep extends RealmObject {
     @PrimaryKey
     private String mId;
 
     private String mName;
     private String mAbout;
+    private String mLocation;
+
     private String mCategory;
+
+    private double mLongitude;
+    private double mLatitude;
 
     private String mPhotoUrl;
     private String mPhoto1Url;
     private String mPhoto2Url;
 
-    private double mLongitude;
-    private double mLatitude;
-    private String mLocation;
 
-    public Eat(){
+    public Sleep(){
         mName = "";
         mAbout = "";
         mCategory = "";
         mLocation = "";
     }
 
-    public String getAbout() {
-        return mAbout;
+    public String getCategory() {
+        return mCategory;
     }
 
-    public void setAbout(String pAbout) {
-        mAbout = pAbout;
+    public void setCategory(String pCategory) {
+        mCategory = pCategory;
     }
 
     public String getId() {
@@ -42,36 +45,20 @@ public class Eat extends RealmObject {
         mId = pId;
     }
 
-    public double getLatitude() {
-        return mLatitude;
-    }
-
-    public void setLatitude(double pLatitude) {
-        mLatitude = pLatitude;
-    }
-
-    public String getLocation() {
-        return mLocation;
-    }
-
-    public void setLocation(String pLocation) {
-        mLocation = pLocation;
-    }
-
-    public double getLongitude() {
-        return mLongitude;
-    }
-
-    public void setLongitude(double pLongitude) {
-        mLongitude = pLongitude;
-    }
-
     public String getName() {
         return mName;
     }
 
     public void setName(String pName) {
         mName = pName;
+    }
+
+    public String getAbout() {
+        return mAbout;
+    }
+
+    public void setAbout(String pAbout) {
+        mAbout = pAbout;
     }
 
     public String getPhotoUrl() {
@@ -98,11 +85,29 @@ public class Eat extends RealmObject {
         mPhoto2Url = pPhoto2Url;
     }
 
-    public String getCategory() {
-        return mCategory;
+    public String getLocation() {
+        return mLocation;
     }
 
-    public void setCategory(String pCategory) {
-        mCategory = pCategory;
+    public void setLocation(String pLocation) {
+        mLocation = pLocation;
     }
+
+    public double getLongitude() {
+        return mLongitude;
+    }
+
+    public void setLongitude(double pLongitude) {
+        mLongitude = pLongitude;
+    }
+
+    public double getLatitude() {
+        return mLatitude;
+    }
+
+    public void setLatitude(double pLatitude) {
+        mLatitude = pLatitude;
+    }
+
+
 }

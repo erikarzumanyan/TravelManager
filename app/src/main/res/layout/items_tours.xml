@@ -18,18 +18,18 @@
         android:layout_height="wrap_content">
 
         <ImageView
-            android:id="@+id/image_view_eat"
+            android:id="@+id/image_view_tour"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:scaleType="centerCrop"
-            android:src="@drawable/placeholder"/>
+            android:src="@drawable/e"/>
 
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_alignTop="@+id/image_view_eat"
-            android:layout_alignBottom="@id/image_view_eat"
+            android:layout_alignTop="@+id/image_view_tour"
+            android:layout_alignBottom="@id/image_view_tour"
             android:gravity="center_horizontal"
             android:layout_centerInParent="true"
             android:background="#45000000">
@@ -41,11 +41,11 @@
                 android:gravity="center">
 
                 <TextView
-                    android:id="@+id/text_view_eat"
+                    android:id="@+id/text_view_tour"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColor="@color/background_floating_material_light"
-                    android:layout_alignBottom="@+id/image_view_eat"
+                    android:layout_alignBottom="@+id/image_view_tour"
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentStart="true"
                     android:text="Lastiver"
@@ -56,14 +56,22 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_horizontal">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="Medium Text"
+                        android:id="@+id/text_viw_tour_price_tour_list_fragment"/>
 
                     <TextView
-                        android:id="@+id/text_view_location_eat"
+                        android:id="@+id/text_view_distance_tour_operator"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="@color/background_floating_material_light"
                         android:textSize="15sp"
-                        android:text="Location: Armenia"/>
+                        android:layout_marginLeft="16dp"
+                        android:layout_marginStart="16dp"
+                        android:text="Distance: 50 km"/>
 
                 </LinearLayout>
 

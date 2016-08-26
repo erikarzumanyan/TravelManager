@@ -33,6 +33,23 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="3">
 
+                <com.uniquemiban.travelmanager.start.RoundedImageView
+                    android:id="@+id/image_view_photo"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:scaleType="centerInside"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="@dimen/activity_vertical_margin"/>
+
+                <Button
+                    android:id="@+id/button_choose_image"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:layout_gravity="center_horizontal"
+                    android:text="choose image"
+                    android:layout_marginBottom="@dimen/activity_vertical_margin"/>
+
                 <EditText
                     android:id="@+id/edit_text_name_register"
                     android:layout_width="match_parent"

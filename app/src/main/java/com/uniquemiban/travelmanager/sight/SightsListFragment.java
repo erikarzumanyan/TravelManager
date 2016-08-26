@@ -81,7 +81,6 @@ public class SightsListFragment extends Fragment {
 
     private List<Sight> mSightsList;
     private RecyclerView mSightsRecyclerView;
-    private StaggeredGridLayoutManager mStaggeredGridLayoutManager;
     private LinearLayoutManager mLinearLayoutManager;
     private SightAdapter mAdapter;
 
@@ -91,7 +90,7 @@ public class SightsListFragment extends Fragment {
 
     private ChildEventListener mChildEventListener;
 
-    private String mSearchByName = null;
+
     private String mSearch = null;
 
     private Location mLastLocation = null;
@@ -142,18 +141,6 @@ public class SightsListFragment extends Fragment {
                     } else {
                         mRealm = Realm.getDefaultInstance();
 
-//                        mRealm.executeTransactionAsync(new Realm.Transaction() {
-//                            @Override
-//                            public void execute(Realm realm) {
-//                                realm.copyToRealmOrUpdate(s);
-//                            }
-//                        }, new Realm.Transaction.OnSuccess() {
-//                            @Override
-//                            public void onSuccess() {
-//                                updateUI(s);
-//                            }
-//                        });
-
                         mRealm.executeTransaction(new Realm.Transaction() {
                             @Override
                             public void execute(Realm realm) {
@@ -171,15 +158,11 @@ public class SightsListFragment extends Fragment {
 
                 mRealm = Realm.getDefaultInstance();
 
-                if(mRealm.where(Sight.class).equalTo("mId", s.getId()).findFirst()!= null) {
-                    mRealm.executeTransactionAsync(new Realm.Transaction() {
+                if(mRealm.where(Sight.class).equalTo("mId", s.getId()).findFirst() != null) {
+                    mRealm.executeTransaction(new Realm.Transaction() {
                         @Override
                         public void execute(Realm realm) {
                             realm.copyToRealmOrUpdate(s);
-                        }
-                    }, new Realm.Transaction.OnSuccess() {
-                        @Override
-                        public void onSuccess() {
                             updateUI(s);
                         }
                     });
@@ -189,9 +172,6 @@ public class SightsListFragment extends Fragment {
             @Override
             public void onChildRemoved(DataSnapshot pDataSnapshot) {
                 final Sight s = pDataSnapshot.getValue(Sight.class);
-
-                if(!TextUtils.isEmpty(mSearchByName) && !s.getName().contains(mSearchByName))
-                    return;
 
                 mRealm = Realm.getDefaultInstance();
 
@@ -289,15 +269,8 @@ public class SightsListFragment extends Fragment {
             }
         });
 
-        mStaggeredGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         mLinearLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
-
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-            mSightsRecyclerView.setLayoutManager(mLinearLayoutManager);
-        }
-        else {
-            mSightsRecyclerView.setLayoutManager(mStaggeredGridLayoutManager);
-        }
+        mSightsRecyclerView.setLayoutManager(mLinearLayoutManager);
 
         mAdapter = new SightAdapter(mSightsList);
         mSightsRecyclerView.setAdapter(mAdapter);
@@ -308,6 +281,8 @@ public class SightsListFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+
+        ((NavigationDrawerActivity)getActivity()).connect();
 
         if (mRealm.isClosed())
             mRealm = Realm.getDefaultInstance();
@@ -438,6 +413,7 @@ public class SightsListFragment extends Fragment {
     @Override
     public void onStop() {
         super.onStop();
+        ((NavigationDrawerActivity)getActivity()).disconnect();
         mRealm.close();
         mRef.removeEventListener(mChildEventListener);
         mQuery.removeEventListener(mChildEventListener);

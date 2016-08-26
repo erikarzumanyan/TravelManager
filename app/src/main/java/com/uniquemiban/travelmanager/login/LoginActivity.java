@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -47,6 +48,16 @@ public class LoginActivity extends AppCompatActivity {
         findViewById(R.id.button_sign_in).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View pView) {
+                if(TextUtils.isEmpty(mEmailEditText.getText().toString())){
+                    Toast.makeText(LoginActivity.this, "Please, enter email address..", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                if(TextUtils.isEmpty(mPasswordEditText.getText().toString())){
+                    Toast.makeText(LoginActivity.this, "Please, enter password..", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
                 FirebaseAuth.getInstance()
                         .signInWithEmailAndPassword(mEmailEditText.getText().toString(), mPasswordEditText.getText().toString())
                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -58,10 +69,25 @@ public class LoginActivity extends AppCompatActivity {
                                     final DatabaseReference ref = FirebaseDatabase.getInstance().getReference()
                                             .child(Constants.FIREBASE_USERS).child(user.getUid()).child("Name");
 
+                                    final DatabaseReference refPhoto = FirebaseDatabase.getInstance().getReference()
+                                            .child(Constants.FIREBASE_USERS).child(user.getUid()).child("PhotoUrl");
+
                                     ref.addValueEventListener(new ValueEventListener() {
                                         @Override
                                         public void onDataChange(DataSnapshot pDataSnapshot) {
                                             getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE).edit().putString(SHARED_NAME, pDataSnapshot.getValue(String.class)).commit();
+                                            refPhoto.addValueEventListener(new ValueEventListener() {
+                                                @Override
+                                                public void onDataChange(DataSnapshot pDataSnapshot) {
+                                                    getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE).edit().putString(SHARED_PHOTO_URL, pDataSnapshot.getValue(String.class)).commit();
+                                                    refPhoto.removeEventListener(this);
+                                                }
+
+                                                @Override
+                                                public void onCancelled(DatabaseError pDatabaseError) {
+
+                                                }
+                                            });
                                             ref.removeEventListener(this);
                                             startActivity(new Intent(LoginActivity.this, NavigationDrawerActivity.class));
                                             finish();
@@ -74,7 +100,7 @@ public class LoginActivity extends AppCompatActivity {
                                         }
                                     });
                                 } else {
-                                    Toast.makeText(LoginActivity.this, "Try Again", Toast.LENGTH_LONG).show();
+                                    Toast.makeText(LoginActivity.this, "Something wrong..", Toast.LENGTH_LONG).show();
                                 }
                             }
                         });
