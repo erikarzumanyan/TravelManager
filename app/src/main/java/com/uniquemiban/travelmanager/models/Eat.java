@@ -24,7 +24,6 @@ public class Eat extends RealmObject {
         mCategory = "";
         mLocation = "";
 
-
     }
 
     public String getAbout() {
