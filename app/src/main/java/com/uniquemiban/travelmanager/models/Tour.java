@@ -8,8 +8,6 @@ public class Tour extends RealmObject {
     @PrimaryKey
     private String mId;
 
-    private String mCategory;
-
     private String mName;
     private String mTourOperatorName;
     private int mPrice;
@@ -17,21 +15,47 @@ public class Tour extends RealmObject {
     private String mAbout;
     private double mLatitude;
     private double mLongitude;
+    private String mNumber;
+    private String mFacebookUrl;
 
     public Tour(){
         mName = "";
-        mAbout = "";
-        mCategory = "";
         mTourOperatorName = "";
+        mPhotoUrl = "";
+        mAbout = "";
+        mNumber = "";
+        mFacebookUrl = "";
     }
 
 
-    public String getCategory() {
-        return mCategory;
+    public Tour(String pId, String pName, String pTourOperatorName, int pPrice, String pPhotoUrl, String pAbout, int pRate, double pLatitude, double pLongitude, String pNumber, String pFacebookUrl) {
+        mId = pId;
+        mName = pName;
+        mTourOperatorName = pTourOperatorName;
+        mPrice = pPrice;
+        mPhotoUrl = pPhotoUrl;
+        mAbout = pAbout;
+        mLatitude = pLatitude;
+        mLongitude = pLongitude;
+        mNumber = pNumber;
+        mFacebookUrl = pFacebookUrl;
     }
 
-    public void setCategory(String pCategory) {
-        mCategory = pCategory;
+
+    public String getFacebookUrl() {
+        return mFacebookUrl;
+    }
+
+    public void setFacebookUrl(String pFacebookUrl) {
+        mFacebookUrl = pFacebookUrl;
+    }
+
+    public String getNumber() {
+        return mNumber;
+    }
+
+    public void setNumber(String pNumber) {
+        mNumber = pNumber;
     }
 
     public double getLatitude() {
@@ -97,4 +121,5 @@ public class Tour extends RealmObject {
     public void setAbout(String pAbout) {
         mAbout = pAbout;
     }
+
 }

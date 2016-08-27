@@ -26,9 +26,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,26 +40,18 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.maps.android.SphericalUtil;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.JsonHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
-import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.uniquemiban.travelmanager.R;
-import com.uniquemiban.travelmanager.filter.FilterFragment;
+import com.uniquemiban.travelmanager.filter.MoneyFilterFragment;
 import com.uniquemiban.travelmanager.models.Sight;
 import com.uniquemiban.travelmanager.models.Tour;
 import com.uniquemiban.travelmanager.sight.SightFragment;
 import com.uniquemiban.travelmanager.start.NavigationDrawerActivity;
 import com.uniquemiban.travelmanager.utils.Constants;
-import com.uniquemiban.travelmanager.utils.Utils;
-
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import cz.msebera.android.httpclient.Header;
 import io.realm.Case;
 import io.realm.Realm;
 import io.realm.RealmQuery;
@@ -69,9 +59,12 @@ import io.realm.RealmResults;
 
 public class TourListFragment extends Fragment {
 
-    public static final String FRAGMENT_TAG = "tours_list_fragment";
+    public static final String ARG_NAME = "tour_list_fragment_arg_name";
+
+
+    public static final String FRAGMENT_TAG = "tour_list_fragment";
+    public static final String FRAGMENT_TAG_RADIUS = "tour_list_fragment_radius";
     private static final int LOADING_ITEMS_NUMBER = 5;
-    private String mLastItemId = null;
 
     private static final int HIDE_THRESHOLD = 20;
     private int scrolledDistance = 0;
@@ -80,8 +73,10 @@ public class TourListFragment extends Fragment {
     private boolean mLoading = true;
     int mFirstVisibleItemPosition, mVisibleItemCount, mTotalItemCount;
 
-    private List<Tour> mToursList;
-    private RecyclerView mToursRecyclerView;
+    private int mCount = 0;
+
+    private List<Tour> mTourList;
+    private RecyclerView mTourRecyclerView;
     private StaggeredGridLayoutManager mStaggeredGridLayoutManager;
     private LinearLayoutManager mLinearLayoutManager;
     private TourAdapter mAdapter;
@@ -92,23 +87,48 @@ public class TourListFragment extends Fragment {
 
     private ChildEventListener mChildEventListener;
 
-    private String mSearchByName = null;
-    private String mSearch = null;
+    private String mName = null;
 
-    private Location mLastLocation = null;
-    private float mRadius = -1;
+    private String mSearch = null;
+    private String mLastItemId = null;
+
+    private int mFrom = -1;
+    private int mTo = -1;
+
+    public static TourListFragment newInstance(String pName) {
+        TourListFragment fragment = new TourListFragment();
+        Bundle bundle = new Bundle();
+        bundle.putString(ARG_NAME, pName);
+        fragment.setArguments(bundle);
+        return fragment;
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        NavigationDrawerActivity activity = ((NavigationDrawerActivity)getActivity());
-        mLastLocation = activity.getLastLocation();
+
 
         mRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_TOUR).getRef();
         mRealm = Realm.getDefaultInstance();
 
-        mToursList = new ArrayList<>();
+        if (getArguments() != null) {
+            Bundle bundle = getArguments();
+            mName = bundle.getString(ARG_NAME);
+        }
+
+        mTourList = new ArrayList<>();
+
+        RealmResults<Tour> results = null;
+        if(mName != null)
+            results = mRealm.where(Tour.class).equalTo("mName", mName).findAll();
+        else
+            results = mRealm.where(Tour.class).findAll();
+
+
+        for (Tour tour : results) {
+            mTourList.add(tour);
+        }
 
         mChildEventListener = new ChildEventListener() {
             @Override
@@ -116,24 +136,25 @@ public class TourListFragment extends Fragment {
 
                 final Tour t = pDataSnapshot.getValue(Tour.class);
 
-                if(mLastLocation != null && mRadius > 0
-                        && SphericalUtil.computeDistanceBetween(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()),
-                        new LatLng(t.getLatitude(), t.getLongitude())) > mRadius) {
+
+                if(mFrom != -1 && t.getPrice() < mFrom
+                        || mTo != -1 && t.getPrice() > mTo){
+                    mQuery.removeEventListener(mChildEventListener);
+                    mLastItemId = t.getId();
+                    mQuery = mRef.orderByKey().startAt(mLastItemId).limitToFirst(LOADING_ITEMS_NUMBER);
+                    mQuery.addChildEventListener(mChildEventListener);
+                    return;
+                }
+
+                if (!TextUtils.isEmpty(mSearch) && !t.getName().contains(mSearch)
+                        && !t.getTourOperatorName().contains(mSearch)) {
 
                     mQuery.removeEventListener(mChildEventListener);
                     mLastItemId = t.getId();
                     mQuery = mRef.orderByKey().startAt(mLastItemId).limitToFirst(LOADING_ITEMS_NUMBER);
                     mQuery.addChildEventListener(mChildEventListener);
 
-                } else if(!TextUtils.isEmpty(mSearch) && !t.getName().contains(mSearch)
-                  ) {
-
-                    mQuery.removeEventListener(mChildEventListener);
-                    mLastItemId = t.getId();
-                    mQuery = mRef.orderByKey().startAt(mLastItemId).limitToFirst(LOADING_ITEMS_NUMBER);
-                    mQuery.addChildEventListener(mChildEventListener);
-
-                } else{
+                } else {
 
                     if (TextUtils.isEmpty(t.getId())) {
                         String id = pDataSnapshot.getKey();
@@ -142,29 +163,26 @@ public class TourListFragment extends Fragment {
                     } else {
                         mRealm = Realm.getDefaultInstance();
 
-//                        mRealm.executeTransactionAsync(new Realm.Transaction() {
-//                            @Override
-//                            public void execute(Realm realm) {
-//                                realm.copyToRealmOrUpdate(s);
-//                            }
-//                        }, new Realm.Transaction.OnSuccess() {
-//                            @Override
-//                            public void onSuccess() {
-//                                updateUI(s);
-//                            }
-//                        });
-
-                        mRealm.executeTransaction(new Realm.Transaction() {
+                        mRealm.executeTransactionAsync(new Realm.Transaction() {
                             @Override
                             public void execute(Realm realm) {
                                 realm.copyToRealmOrUpdate(t);
-                                updateUI(t);
+                            }
+                        }, new Realm.Transaction.OnSuccess() {
+                            @Override
+                            public void onSuccess() {
+                                if (mName == null)
+                                    updateUI(t);
+                                else {
+                                    if (t.getName().equals(mName))
+                                        updateUI(t);
+                                }
                             }
                         });
                     }
+
                 }
             }
-
 
             @Override
             public void onChildChanged(DataSnapshot pDataSnapshot, String pS) {
@@ -172,29 +190,26 @@ public class TourListFragment extends Fragment {
 
                 mRealm = Realm.getDefaultInstance();
 
-                if(mRealm.where(Tour.class).equalTo("mId", t.getId()).findFirst()!= null) {
-                    mRealm.executeTransactionAsync(new Realm.Transaction() {
-                        @Override
-                        public void execute(Realm realm) {
-                            realm.copyToRealmOrUpdate(t);
-                        }
-                    }, new Realm.Transaction.OnSuccess() {
-                        @Override
-                        public void onSuccess() {
-                            updateUI(t);
-                        }
-                    });
-                }
+                mRealm.executeTransactionAsync(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        realm.copyToRealmOrUpdate(t);
+                    }
+                }, new Realm.Transaction.OnSuccess() {
+                    @Override
+                    public void onSuccess() {
+                        updateUI(t);
+                    }
+                });
             }
 
             @Override
             public void onChildRemoved(DataSnapshot pDataSnapshot) {
                 final Tour t = pDataSnapshot.getValue(Tour.class);
 
-                if(!TextUtils.isEmpty(mSearchByName) && !t.getName().contains(mSearchByName))
-                    return;
-
                 mRealm = Realm.getDefaultInstance();
+
+                Log.i("TAGTAG", "remove");
 
                 mRealm.executeTransactionAsync(new Realm.Transaction() {
                     @Override
@@ -206,8 +221,6 @@ public class TourListFragment extends Fragment {
                     @Override
                     public void onSuccess() {
                         deleteFromList(t);
-                        Picasso.with(getActivity().getApplicationContext()).invalidate(t.getPhotoUrl());
-
                     }
                 });
             }
@@ -232,22 +245,24 @@ public class TourListFragment extends Fragment {
 
         setHasOptionsMenu(true);
 
-        NavigationDrawerActivity activity = (NavigationDrawerActivity)getActivity();
+        final NavigationDrawerActivity activity = (NavigationDrawerActivity) getActivity();
 
         ActionBar bar = activity.getSupportActionBar();
-        bar.setDisplayHomeAsUpEnabled(false);
-        bar.setDisplayShowCustomEnabled(true);
 
         Toolbar toolbar = activity.getToolbar();
 
-        toolbar.setTitle("Tours");
+        toolbar.setTitle("Tour");
+
+        bar.setDisplayHomeAsUpEnabled(false);
+        bar.setDisplayShowCustomEnabled(true);
+
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 activity, activity.getDrawer(), toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         activity.getDrawer().setDrawerListener(toggle);
         toggle.syncState();
 
-        mToursRecyclerView = (RecyclerView) view.findViewById(R.id.fragment_tours_list_recycler_view);
-        mToursRecyclerView.setItemAnimator(new RecyclerView.ItemAnimator() {
+        mTourRecyclerView = (RecyclerView) view.findViewById(R.id.fragment_tours_list_recycler_view);
+        mTourRecyclerView.setItemAnimator(new RecyclerView.ItemAnimator() {
             @Override
             public boolean animateDisappearance(@NonNull RecyclerView.ViewHolder viewHolder, @NonNull ItemHolderInfo preLayoutInfo, @Nullable ItemHolderInfo postLayoutInfo) {
                 return false;
@@ -293,14 +308,13 @@ public class TourListFragment extends Fragment {
         mLinearLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
 
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-            mToursRecyclerView.setLayoutManager(mLinearLayoutManager);
-        }
-        else {
-            mToursRecyclerView.setLayoutManager(mStaggeredGridLayoutManager);
+            mTourRecyclerView.setLayoutManager(mLinearLayoutManager);
+        } else {
+            mTourRecyclerView.setLayoutManager(mStaggeredGridLayoutManager);
         }
 
-        mAdapter = new TourAdapter(mToursList);
-        mToursRecyclerView.setAdapter(mAdapter);
+        mAdapter = new TourAdapter(mTourList);
+        mTourRecyclerView.setAdapter(mAdapter);
 
         return view;
     }
@@ -312,12 +326,12 @@ public class TourListFragment extends Fragment {
         if (mRealm.isClosed())
             mRealm = Realm.getDefaultInstance();
 
-        mQuery = mRef.orderByKey().limitToFirst(LOADING_ITEMS_NUMBER);
+        mQuery = mRef.limitToFirst(mCount = mCount + LOADING_ITEMS_NUMBER);
         mQuery.addChildEventListener(mChildEventListener);
 
-        final ActionBar bar = ((NavigationDrawerActivity)getActivity()).getSupportActionBar();
+        final ActionBar bar = ((NavigationDrawerActivity) getActivity()).getSupportActionBar();
 
-        mToursRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+        mTourRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
 
@@ -331,7 +345,7 @@ public class TourListFragment extends Fragment {
                     scrolledDistance = 0;
                 }
 
-                if((controlsVisible && dy>0) || (!controlsVisible && dy<0)) {
+                if ((controlsVisible && dy > 0) || (!controlsVisible && dy < 0)) {
                     scrolledDistance += dy;
                 }
 
@@ -346,10 +360,10 @@ public class TourListFragment extends Fragment {
                         mFirstVisibleItemPosition = mLinearLayoutManager.findFirstVisibleItemPosition();
 
                         if (mLoading) {
-                            if ((mVisibleItemCount + mFirstVisibleItemPosition + 1) >= mRealm.where(Tour.class).findAll().size()
+                            if ((mVisibleItemCount + mFirstVisibleItemPosition + 1) >= mRealm.where(Sight.class).findAll().size()
                                     && (mVisibleItemCount + mFirstVisibleItemPosition + 1) >= mTotalItemCount) {
                                 mQuery.removeEventListener(mChildEventListener);
-                                mQuery = mRef.orderByKey().startAt(mToursList.get(mToursList.size() - 1).getId()).limitToFirst(LOADING_ITEMS_NUMBER);
+                                mQuery = mRef.orderByKey().startAt(mTourList.get(mTourList.size() - 1).getId()).limitToFirst(LOADING_ITEMS_NUMBER);
                                 mQuery.addChildEventListener(mChildEventListener);
                             }
                         }
@@ -357,80 +371,80 @@ public class TourListFragment extends Fragment {
                 }
             }
         });
+
+        searchItemsByPrice();
     }
 
     private void deleteFromList(Tour pTour) {
         int index = -1;
         String id = pTour.getId();
-        for (int i = 0; i < mToursList.size(); ++i) {
-            if (mToursList.get(i).getId().equals(id))
+        for (int i = 0; i < mTourList.size(); ++i) {
+            if (mTourList.get(i).getId().equals(id))
                 index = i;
         }
         if (index != -1) {
-            mToursList.remove(index);
-            mAdapter.notifyItemRangeChanged(index, mToursList.size() - 1);
+            mTourList.remove(index);
+            mAdapter.notifyItemRangeChanged(index, mTourList.size() - 1);
         }
     }
 
     private void updateUI(Tour pTour) {
         int index = -1;
         String id = pTour.getId();
-        for (int i = 0; i < mToursList.size(); ++i) {
-            if (mToursList.get(i).getId().equals(id))
+        for (int i = 0; i < mTourList.size(); ++i) {
+            if (mTourList.get(i).getId().equals(id))
                 index = i;
         }
         if (index == -1) {
-            mToursList.add(pTour);
-            mAdapter.notifyItemChanged(mToursList.size() - 1);
+            mTourList.add(pTour);
+            mAdapter.notifyItemChanged(mTourList.size() - 1);
         } else {
-            mToursList.add(index, pTour);
-            mToursList.remove(index + 1);
+            mTourList.add(index, pTour);
+            mTourList.remove(index + 1);
             mAdapter.notifyItemChanged(index);
         }
     }
 
-    public void searchItems(String pQuery){
-        mSearch = pQuery;
-        searchItemsByRadius();
+    public void searchItemsByName(String pQuery) {
+        RealmResults<Tour> results = mRealm.where(Tour.class).contains("mName", pQuery, Case.INSENSITIVE).findAll();
+        mTourList.clear();
+        for (Tour t : results) {
+            mTourList.add(t);
+        }
+        mAdapter.notifyDataSetChanged();
     }
 
-    public void searchItemsByRadius(){
+    public void searchItemsByPrice() {
         RealmQuery<Tour> realmQuery = null;
 
         if(mSearch != null){
             realmQuery = mRealm.where(Tour.class).contains("mName", mSearch, Case.INSENSITIVE);
-            realmQuery = realmQuery.or().contains("mCategory", mSearch, Case.INSENSITIVE);
-            realmQuery = realmQuery.or().contains("mAbout", mSearch, Case.INSENSITIVE);
+            realmQuery = realmQuery.or().contains("mTourOperatorName", mSearch, Case.INSENSITIVE);
         } else {
             realmQuery = mRealm.where(Tour.class);
         }
 
-        NavigationDrawerActivity activity = ((NavigationDrawerActivity)getActivity());
-        mLastLocation = activity.getLastLocation();
+        SharedPreferences prefs = getActivity().getSharedPreferences(MoneyFilterFragment.SHARED_PREFS_MONEY, Context.MODE_PRIVATE);
+        mFrom = prefs.getInt(MoneyFilterFragment.SHARED_PREFS_KEY_FROM, -1);
+        if (mFrom != -1){
+            realmQuery = realmQuery.greaterThan("mPrice", mFrom);
+        }
 
-        SharedPreferences prefs = activity.getSharedPreferences(Constants.SHARED_PREFS_TOURS, Context.MODE_PRIVATE);
-        mRadius = prefs.getFloat(Constants.SHARED_PREFS_KEY_RADIUS, -1);
-
-        if (mLastLocation == null && !TextUtils.isEmpty(prefs.getString(Constants.SHARED_PREFS_KEY_LAST_LAT, ""))) {
-            mLastLocation = new Location("");
-            mLastLocation.setLatitude(Double.valueOf(prefs.getString(Constants.SHARED_PREFS_KEY_LAST_LAT, "")));
-            mLastLocation.setLongitude(Double.valueOf(prefs.getString(Constants.SHARED_PREFS_KEY_LAST_LONG, "")));
+        mTo = prefs.getInt(MoneyFilterFragment.SHARED_PREFS_KEY_TO, -1);
+        if (mTo != -1){
+            realmQuery = realmQuery.lessThan("mPrice", mTo);
         }
 
         RealmResults<Tour> results = realmQuery.findAll();
-        mToursList.clear();
-        for (Tour t: results){
-            if(mLastLocation != null && mRadius > 0
-                    && SphericalUtil.computeDistanceBetween(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()),
-                    new LatLng(t.getLatitude(), t.getLongitude())) > mRadius)
-                continue;
-
-            mToursList.add(t);
+        mTourList.clear();
+        for (Tour s: results){
+            mTourList.add(s);
         }
 
         mAdapter.notifyDataSetChanged();
 
-        mRef.addChildEventListener(mChildEventListener);
+        mQuery.removeEventListener(mChildEventListener);
+        mQuery.addChildEventListener(mChildEventListener);
     }
 
     @Override
@@ -440,54 +454,24 @@ public class TourListFragment extends Fragment {
         mQuery.removeEventListener(mChildEventListener);
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        menu.clear();
-        inflater.inflate(R.menu.items_list, menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if(id == R.id.action_search){
-            ((SearchView) item.getActionView()).setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-                @Override
-                public boolean onQueryTextSubmit(String query) {
-                    searchItems(query);
-                    return false;
-                }
-
-                @Override
-                public boolean onQueryTextChange(String newText) {
-                    searchItems(newText);
-                    return false;
-                }
-            });
-        } else if(id == R.id.action_filter){
-            FilterFragment fragment = FilterFragment.newInstance(Constants.SHARED_PREFS_TOURS);
-            fragment.show(((NavigationDrawerActivity)getActivity()).getSupportFragmentManager(), FilterFragment.FRAGMENT_TAG);
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
     private class TourHolder extends RecyclerView.ViewHolder {
 
         private Tour mTour;
 
         public ImageView mPhotoImageView;
         public TextView mNameTextView;
-        public TextView mTourOperatorNametextView;
-
-        public ProgressBar mProgressBar;
+        public TextView mTourOperatorName;
+        public TextView mPrice;
 
         public TourHolder(View itemView) {
             super(itemView);
 
             mPhotoImageView = (ImageView) itemView.findViewById(R.id.image_view_tour);
-            mNameTextView = (TextView) itemView.findViewById(R.id.text_view_tour);
-            mTourOperatorNametextView = (TextView) itemView.findViewById(R.id.text_view_distance_tour_operator);
 
-            mProgressBar = (ProgressBar)itemView.findViewById(R.id.progress_bar_item_sight);
+
+            mNameTextView = (TextView) itemView.findViewById(R.id.text_view_tour);
+            mTourOperatorName = (TextView) itemView.findViewById(R.id.text_view_name_tour_operator);
+            mPrice = (TextView) itemView.findViewById(R.id.text_viw_tour_price_tour_list_fragment);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -503,7 +487,7 @@ public class TourListFragment extends Fragment {
                             manager.beginTransaction()
                                     .replace(R.id.fragment_container, fragment, TourFragment.FRAGMENT_TAG)
                                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                                    .addToBackStack(TourFragment.FRAGMENT_TAG)
+                                    .addToBackStack(SightFragment.FRAGMENT_TAG)
                                     .commit();
                         }
                     }
@@ -514,27 +498,19 @@ public class TourListFragment extends Fragment {
         public void bindTour(Tour pTour) {
             mTour = pTour;
 
-
             if (mTour.getName() != null)
                 mNameTextView.setText(mTour.getName());
+            if (mTour.getTourOperatorName() != null)
+                mTourOperatorName.setText(mTour.getTourOperatorName());
+            mPrice.setText("Price:  " + mTour.getPrice() + " AMD");
+
 
             Picasso.with(getActivity().getApplicationContext())
                     .load(mTour.getPhotoUrl())
-                    .resize(((NavigationDrawerActivity)getActivity()).getWidth(), 0)
+                    .resize(((NavigationDrawerActivity) getActivity()).getWidth(), 0)
                     .onlyScaleDown()
                     .placeholder(R.drawable.placeholder)
-                    .into(mPhotoImageView, new Callback() {
-                        @Override
-                        public void onSuccess() {
-
-                        }
-
-                        @Override
-                        public void onError() {
-                            Toast.makeText(getActivity(), "Download error", Toast.LENGTH_SHORT).show();
-
-                        }
-                    });
+                    .into(mPhotoImageView);
         }
     }
 
@@ -569,6 +545,36 @@ public class TourListFragment extends Fragment {
             return mTours.size();
         }
 
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        inflater.inflate(R.menu.tours_list, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_search) {
+            ((SearchView) item.getActionView()).setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    searchItemsByName(query);
+                    return false;
+                }
+
+                @Override
+                public boolean onQueryTextChange(String newText) {
+                    searchItemsByName(newText);
+                    return false;
+                }
+            });
+        } else if (id == R.id.action_money_filter){
+            MoneyFilterFragment fragment = new MoneyFilterFragment();
+            fragment.show(((NavigationDrawerActivity) getActivity()).getSupportFragmentManager(), MoneyFilterFragment.FRAGMENT_TAG);
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
 

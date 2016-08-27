@@ -60,6 +60,7 @@ public class NavigationDrawerActivity extends AppCompatActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         int uiOps = getWindow().getDecorView().getSystemUiVisibility();
         uiOps |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
@@ -90,6 +91,7 @@ public class NavigationDrawerActivity extends AppCompatActivity
                 && !getSharedPreferences(Constants.SHARED_PREFS, MODE_PRIVATE).getBoolean(LoginActivity.SHARED_SKIP, false)) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
+            return;
         }
 
         final SharedPreferences userPrefs = getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE);
@@ -291,8 +293,6 @@ public class NavigationDrawerActivity extends AppCompatActivity
             }
         } else if (id == R.id.nav_map) {
 
-        } else if (id == R.id.nav_share) {
-
         } else if (id == R.id.nav_sign_in) {
             View header = ((NavigationView) findViewById(R.id.nav_view)).getHeaderView(0);
             header.findViewById(R.id.image_view_profile_pic_nav_header).setVisibility(View.VISIBLE);
@@ -333,9 +333,9 @@ public class NavigationDrawerActivity extends AppCompatActivity
                 mGoogleApiClient);
 
         if(mLastLocation != null) {
-            getSharedPreferences(Constants.SHARED_PREFS_SIGHT, Context.MODE_PRIVATE).edit()
+            getSharedPreferences(Constants.SHARED_PREFS, Context.MODE_PRIVATE).edit()
                     .putString(Constants.SHARED_PREFS_KEY_LAST_LAT, mLastLocation.getLatitude() + "").commit();
-            getSharedPreferences(Constants.SHARED_PREFS_SIGHT, Context.MODE_PRIVATE).edit()
+            getSharedPreferences(Constants.SHARED_PREFS, Context.MODE_PRIVATE).edit()
                     .putString(Constants.SHARED_PREFS_KEY_LAST_LONG, mLastLocation.getLongitude() + "").commit();
         }
 

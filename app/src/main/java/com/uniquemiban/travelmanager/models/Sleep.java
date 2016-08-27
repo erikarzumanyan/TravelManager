@@ -27,6 +27,9 @@ public class Sleep extends RealmObject {
         mAbout = "";
         mCategory = "";
         mLocation = "";
+        mPhotoUrl = "";
+        mPhoto1Url = "";
+        mPhoto2Url = "";
     }
 
     public String getCategory() {

@@ -6,6 +6,8 @@ public class RateMsg {
     private String mMessage;
     private String mName;
 
+    public RateMsg(){}
+
     public String getMessage() {
         return mMessage;
     }
@@ -29,4 +31,5 @@ public class RateMsg {
     public void setRate(float pRate) {
         mRate = pRate;
     }
+
 }

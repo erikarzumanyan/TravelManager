@@ -20,7 +20,8 @@
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:src="@drawable/placeholder"
-            android:scaleType="centerCrop"/>
+            android:scaleType="centerCrop"
+            android:visibility="invisible"/>
 
     </LinearLayout>
 

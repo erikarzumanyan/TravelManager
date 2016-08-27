@@ -1,6 +1,8 @@
 package com.uniquemiban.travelmanager.sight;
 
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.location.Location;
@@ -13,6 +15,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -34,6 +37,7 @@ import android.widget.Toast;
 
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -66,7 +70,7 @@ import io.realm.Realm;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
 
-public class SightsListFragment extends Fragment {
+public class SightsListFragment extends Fragment{
 
     public static final String FRAGMENT_TAG = "sights_list_fragment";
     private static final int LOADING_ITEMS_NUMBER = 5;
@@ -99,10 +103,6 @@ public class SightsListFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        NavigationDrawerActivity activity = ((NavigationDrawerActivity)getActivity());
-        mLastLocation = activity.getLastLocation();
-        mRadius = activity.getSharedPreferences(Constants.SHARED_PREFS_SIGHT, Context.MODE_PRIVATE).getFloat(Constants.SHARED_PREFS_KEY_RADIUS, -1);
 
         mRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_SIGHTS).getRef();
         mRealm = Realm.getDefaultInstance();
@@ -282,7 +282,10 @@ public class SightsListFragment extends Fragment {
     public void onStart() {
         super.onStart();
 
-        ((NavigationDrawerActivity)getActivity()).connect();
+        NavigationDrawerActivity activity = ((NavigationDrawerActivity)getActivity());
+        activity.connect();
+        mLastLocation = activity.getLastLocation();
+        mRadius = activity.getSharedPreferences(Constants.SHARED_PREFS_SIGHT, Context.MODE_PRIVATE).getFloat(Constants.SHARED_PREFS_KEY_RADIUS, -1);
 
         if (mRealm.isClosed())
             mRealm = Realm.getDefaultInstance();
@@ -388,10 +391,11 @@ public class SightsListFragment extends Fragment {
         SharedPreferences prefs = activity.getSharedPreferences(Constants.SHARED_PREFS_SIGHT, Context.MODE_PRIVATE);
         mRadius = prefs.getFloat(Constants.SHARED_PREFS_KEY_RADIUS, -1);
 
-        if (mLastLocation == null && !TextUtils.isEmpty(prefs.getString(Constants.SHARED_PREFS_KEY_LAST_LAT, ""))) {
+        SharedPreferences shared = activity.getSharedPreferences(Constants.SHARED_PREFS, Context.MODE_PRIVATE);
+        if (mLastLocation == null && !TextUtils.isEmpty(shared.getString(Constants.SHARED_PREFS_KEY_LAST_LAT, ""))) {
             mLastLocation = new Location("");
-            mLastLocation.setLatitude(Double.valueOf(prefs.getString(Constants.SHARED_PREFS_KEY_LAST_LAT, "")));
-            mLastLocation.setLongitude(Double.valueOf(prefs.getString(Constants.SHARED_PREFS_KEY_LAST_LONG, "")));
+            mLastLocation.setLatitude(Double.valueOf(shared.getString(Constants.SHARED_PREFS_KEY_LAST_LAT, "")));
+            mLastLocation.setLongitude(Double.valueOf(shared.getString(Constants.SHARED_PREFS_KEY_LAST_LONG, "")));
         }
 
         RealmResults<Sight> results = realmQuery.findAll();
@@ -406,8 +410,8 @@ public class SightsListFragment extends Fragment {
 
         mAdapter.notifyDataSetChanged();
 
-        mRef.removeEventListener(mChildEventListener);
-        mRef.addChildEventListener(mChildEventListener);
+        mQuery.removeEventListener(mChildEventListener);
+        mQuery.addChildEventListener(mChildEventListener);
     }
 
     @Override
@@ -428,7 +432,7 @@ public class SightsListFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if(id == R.id.action_search){
+        if (id == R.id.action_search) {
             ((SearchView) item.getActionView()).setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                 @Override
                 public boolean onQueryTextSubmit(String query) {
@@ -442,9 +446,26 @@ public class SightsListFragment extends Fragment {
                     return false;
                 }
             });
-        } else if(id == R.id.action_filter){
-            FilterFragment fragment = FilterFragment.newInstance(Constants.SHARED_PREFS_SIGHT);
-            fragment.show(((NavigationDrawerActivity)getActivity()).getSupportFragmentManager(), FilterFragment.FRAGMENT_TAG);
+        } else if (id == R.id.action_filter) {
+            if (mLastLocation != null) {
+
+                FilterFragment fragment = FilterFragment.newInstance(Constants.SHARED_PREFS_SIGHT);
+                fragment.show(((NavigationDrawerActivity) getActivity()).getSupportFragmentManager(), FilterFragment.FRAGMENT_TAG);
+
+            } else {
+
+                if (!Utils.isLocationEnabled(getActivity())) {
+                    new AlertDialog.Builder(getActivity())
+                            .setTitle("Radius Settings")
+                            .setMessage("If you want set the radius from you enable location")
+                            .setPositiveButton("Enable", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface pDialogInterface, int pI) {
+                                    startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                                }
+                            }).setNegativeButton("Cancel", null).create().show();
+                }
+            }
         }
         return super.onOptionsItemSelected(item);
     }

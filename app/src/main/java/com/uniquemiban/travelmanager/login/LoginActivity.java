@@ -1,7 +1,9 @@
 package com.uniquemiban.travelmanager.login;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -45,9 +47,13 @@ public class LoginActivity extends AppCompatActivity {
         mEmailEditText = (EditText)findViewById(R.id.edit_text_email_login);
         mPasswordEditText = (EditText)findViewById(R.id.edit_text_password_login);
 
+        final ProgressDialog progressDialog = new ProgressDialog(this, DialogFragment.STYLE_NO_FRAME);
+
+
         findViewById(R.id.button_sign_in).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View pView) {
+                progressDialog.show();
                 if(TextUtils.isEmpty(mEmailEditText.getText().toString())){
                     Toast.makeText(LoginActivity.this, "Please, enter email address..", Toast.LENGTH_LONG).show();
                     return;
@@ -89,18 +95,22 @@ public class LoginActivity extends AppCompatActivity {
                                                 }
                                             });
                                             ref.removeEventListener(this);
+
+                                            progressDialog.dismiss();
                                             startActivity(new Intent(LoginActivity.this, NavigationDrawerActivity.class));
                                             finish();
                                         }
 
                                         @Override
                                         public void onCancelled(DatabaseError pDatabaseError) {
+                                            progressDialog.dismiss();
                                             startActivity(new Intent(LoginActivity.this, NavigationDrawerActivity.class));
                                             finish();
                                         }
                                     });
                                 } else {
-                                    Toast.makeText(LoginActivity.this, "Something wrong..", Toast.LENGTH_LONG).show();
+                                    progressDialog.dismiss();
+                                    Toast.makeText(LoginActivity.this, pTask.getException().getMessage(), Toast.LENGTH_LONG).show();
                                 }
                             }
                         });

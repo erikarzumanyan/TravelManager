@@ -26,9 +26,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
@@ -40,13 +38,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.maps.android.SphericalUtil;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.JsonHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
-import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.uniquemiban.travelmanager.R;
-
 
 import com.uniquemiban.travelmanager.filter.FilterFragment;
 import com.uniquemiban.travelmanager.models.Sight;
@@ -55,21 +48,23 @@ import com.uniquemiban.travelmanager.models.Sleep;
 import com.uniquemiban.travelmanager.sight.SightFragment;
 import com.uniquemiban.travelmanager.start.NavigationDrawerActivity;
 import com.uniquemiban.travelmanager.utils.Constants;
-import com.uniquemiban.travelmanager.utils.Utils;
-
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import cz.msebera.android.httpclient.Header;
 import io.realm.Case;
 import io.realm.Realm;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
 
 public class SleepListFragment extends Fragment{
-    public static final String FRAGMENT_TAG = "sleeps_list_fragment";
+
+    public static final String ARG_LONGITUDE = "sleep_list_fragment_arg_longitude";
+    public static final String ARG_LATITUDE = "sleep_list_fragment_arg_latitude";
+    public static final String ARG_RADIUS = "sleep_list_fragment_arg_radius";
+
+    public static final String FRAGMENT_TAG = "sleep_list_fragment";
+    public static final String FRAGMENT_TAG_RADIUS = "sleep_list_fragment_radius";
     private static final int LOADING_ITEMS_NUMBER = 5;
     private String mLastItemId = null;
 
@@ -80,9 +75,9 @@ public class SleepListFragment extends Fragment{
     private boolean mLoading = true;
     int mFirstVisibleItemPosition, mVisibleItemCount, mTotalItemCount;
 
-    private List<Sleep> mSleepsList;
-    private RecyclerView mSleepsRecyclerView;
-    private StaggeredGridLayoutManager mStaggeredGridLayoutManager;
+
+    private List<Sleep> mSleepList;
+    private RecyclerView mSleepRecyclerView;
     private LinearLayoutManager mLinearLayoutManager;
     private SleepAdapter mAdapter;
 
@@ -92,24 +87,40 @@ public class SleepListFragment extends Fragment{
 
     private ChildEventListener mChildEventListener;
 
-    private String mSearchByName = null;
+    private double mLongitude = -1;
+    private double mLatitude = -1;
+    private double mRadius = -1;
+
     private String mSearch = null;
 
     private Location mLastLocation = null;
-    private float mRadius = -1;
+    private float mMyRadius = -1;
+
+    public static SleepListFragment newInstance(double pLongitude, double pLatitude, double pRadius){
+        SleepListFragment fragment = new SleepListFragment();
+        Bundle bundle = new Bundle();
+        bundle.putDouble(ARG_LONGITUDE, pLongitude);
+        bundle.putDouble(ARG_LATITUDE, pLatitude);
+        bundle.putDouble(ARG_RADIUS, pRadius);
+        fragment.setArguments(bundle);
+        return fragment;
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        NavigationDrawerActivity activity = ((NavigationDrawerActivity)getActivity());
-        mLastLocation = activity.getLastLocation();
-        mRadius = activity.getSharedPreferences(Constants.SHARED_PREFS_SLEEP, Context.MODE_PRIVATE).getFloat(Constants.SHARED_PREFS_KEY_RADIUS, -1);
-
         mRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_SLEEPS).getRef();
         mRealm = Realm.getDefaultInstance();
 
-        mSleepsList = new ArrayList<>();
+        if(getArguments() != null){
+            Bundle bundle = getArguments();
+            mLongitude = bundle.getDouble(ARG_LONGITUDE);
+            mLatitude = bundle.getDouble(ARG_LATITUDE);
+            mRadius = bundle.getDouble(ARG_RADIUS);
+        }
+
+        mSleepList = new ArrayList<>();
 
         mChildEventListener = new ChildEventListener() {
             @Override
@@ -117,9 +128,16 @@ public class SleepListFragment extends Fragment{
 
                 final Sleep s = pDataSnapshot.getValue(Sleep.class);
 
-                if(mLastLocation != null && mRadius > 0
+                if(mRadius != -1 && SphericalUtil.computeDistanceBetween(new LatLng(mLatitude, mLongitude), new LatLng(s.getLatitude(), s.getLongitude())) > mRadius){
+
+                    mQuery.removeEventListener(mChildEventListener);
+                    mLastItemId = s.getId();
+                    mQuery = mRef.orderByKey().startAt(mLastItemId).limitToFirst(LOADING_ITEMS_NUMBER);
+                    mQuery.addChildEventListener(mChildEventListener);
+
+                } else if(mRadius == -1 && mLastLocation != null && mMyRadius > 0
                         && SphericalUtil.computeDistanceBetween(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()),
-                        new LatLng(s.getLatitude(), s.getLongitude())) > mRadius) {
+                        new LatLng(s.getLatitude(), s.getLongitude())) > mMyRadius) {
 
                     mQuery.removeEventListener(mChildEventListener);
                     mLastItemId = s.getId();
@@ -127,14 +145,14 @@ public class SleepListFragment extends Fragment{
                     mQuery.addChildEventListener(mChildEventListener);
 
                 } else if(!TextUtils.isEmpty(mSearch) && !s.getName().contains(mSearch)
-                     && !s.getLocation().contains(mSearch)) {
+                        && !s.getCategory().contains(mSearch) && !s.getLocation().contains(mSearch)) {
 
                     mQuery.removeEventListener(mChildEventListener);
                     mLastItemId = s.getId();
                     mQuery = mRef.orderByKey().startAt(mLastItemId).limitToFirst(LOADING_ITEMS_NUMBER);
                     mQuery.addChildEventListener(mChildEventListener);
 
-                } else{
+                } else {
 
                     if (TextUtils.isEmpty(s.getId())) {
                         String id = pDataSnapshot.getKey();
@@ -142,18 +160,6 @@ public class SleepListFragment extends Fragment{
                         mRef.child(id).child("id").setValue(id);
                     } else {
                         mRealm = Realm.getDefaultInstance();
-
-//                        mRealm.executeTransactionAsync(new Realm.Transaction() {
-//                            @Override
-//                            public void execute(Realm realm) {
-//                                realm.copyToRealmOrUpdate(s);
-//                            }
-//                        }, new Realm.Transaction.OnSuccess() {
-//                            @Override
-//                            public void onSuccess() {
-//                                updateUI(s);
-//                            }
-//                        });
 
                         mRealm.executeTransaction(new Realm.Transaction() {
                             @Override
@@ -163,6 +169,7 @@ public class SleepListFragment extends Fragment{
                             }
                         });
                     }
+
                 }
             }
 
@@ -172,15 +179,11 @@ public class SleepListFragment extends Fragment{
 
                 mRealm = Realm.getDefaultInstance();
 
-                if(mRealm.where(Sleep.class).equalTo("mId", s.getId()).findFirst()!= null) {
-                    mRealm.executeTransactionAsync(new Realm.Transaction() {
+                if(mRealm.where(Sleep.class).equalTo("mId", s.getId()).findFirst() != null) {
+                    mRealm.executeTransaction(new Realm.Transaction() {
                         @Override
                         public void execute(Realm realm) {
                             realm.copyToRealmOrUpdate(s);
-                        }
-                    }, new Realm.Transaction.OnSuccess() {
-                        @Override
-                        public void onSuccess() {
                             updateUI(s);
                         }
                     });
@@ -190,9 +193,6 @@ public class SleepListFragment extends Fragment{
             @Override
             public void onChildRemoved(DataSnapshot pDataSnapshot) {
                 final Sleep s = pDataSnapshot.getValue(Sleep.class);
-
-                if(!TextUtils.isEmpty(mSearchByName) && !s.getName().contains(mSearchByName))
-                    return;
 
                 mRealm = Realm.getDefaultInstance();
 
@@ -233,22 +233,35 @@ public class SleepListFragment extends Fragment{
 
         setHasOptionsMenu(true);
 
-        NavigationDrawerActivity activity = (NavigationDrawerActivity)getActivity();
+        final NavigationDrawerActivity activity = (NavigationDrawerActivity)getActivity();
 
         ActionBar bar = activity.getSupportActionBar();
-        bar.setDisplayHomeAsUpEnabled(false);
-        bar.setDisplayShowCustomEnabled(true);
 
         Toolbar toolbar = activity.getToolbar();
+        toolbar.setTitle("Sleep");
 
-        toolbar.setTitle("Sleeps");
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                activity, activity.getDrawer(), toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        activity.getDrawer().setDrawerListener(toggle);
-        toggle.syncState();
+        if(mRadius == -1) {
+            bar.setDisplayHomeAsUpEnabled(false);
+            bar.setDisplayShowCustomEnabled(true);
 
-        mSleepsRecyclerView = (RecyclerView) view.findViewById(R.id.fragment_sleeps_list_recycler_view);
-        mSleepsRecyclerView.setItemAnimator(new RecyclerView.ItemAnimator() {
+            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                    activity, activity.getDrawer(), toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+            activity.getDrawer().setDrawerListener(toggle);
+            toggle.syncState();
+        } else {
+            bar.setDisplayShowCustomEnabled(false);
+            bar.setDisplayHomeAsUpEnabled(true);
+
+            toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View pView) {
+                    activity.onBackPressed();
+                }
+            });
+        }
+
+        mSleepRecyclerView = (RecyclerView) view.findViewById(R.id.fragment_sleeps_list_recycler_view);
+        mSleepRecyclerView.setItemAnimator(new RecyclerView.ItemAnimator() {
             @Override
             public boolean animateDisappearance(@NonNull RecyclerView.ViewHolder viewHolder, @NonNull ItemHolderInfo preLayoutInfo, @Nullable ItemHolderInfo postLayoutInfo) {
                 return false;
@@ -290,18 +303,11 @@ public class SleepListFragment extends Fragment{
             }
         });
 
-        mStaggeredGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         mLinearLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
+        mSleepRecyclerView.setLayoutManager(mLinearLayoutManager);
 
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-            mSleepsRecyclerView.setLayoutManager(mLinearLayoutManager);
-        }
-        else {
-            mSleepsRecyclerView.setLayoutManager(mStaggeredGridLayoutManager);
-        }
-
-        mAdapter = new SleepAdapter(mSleepsList);
-        mSleepsRecyclerView.setAdapter(mAdapter);
+        mAdapter = new SleepAdapter(mSleepList);
+        mSleepRecyclerView.setAdapter(mAdapter);
 
         return view;
     }
@@ -310,15 +316,23 @@ public class SleepListFragment extends Fragment{
     public void onStart() {
         super.onStart();
 
+        NavigationDrawerActivity activity = ((NavigationDrawerActivity)getActivity());
+        activity.connect();
+
+        if(mRadius == -1){
+            mLastLocation = activity.getLastLocation();
+            mMyRadius = activity.getSharedPreferences(Constants.SHARED_PREFS, Context.MODE_PRIVATE).getFloat(Constants.SHARED_PREFS_KEY_RADIUS, -1);
+        }
+
         if (mRealm.isClosed())
             mRealm = Realm.getDefaultInstance();
 
-        mQuery = mRef.orderByKey().limitToFirst(LOADING_ITEMS_NUMBER);
+        mQuery = mRef.limitToFirst(LOADING_ITEMS_NUMBER);
         mQuery.addChildEventListener(mChildEventListener);
 
         final ActionBar bar = ((NavigationDrawerActivity)getActivity()).getSupportActionBar();
 
-        mSleepsRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+        mSleepRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
 
@@ -347,10 +361,10 @@ public class SleepListFragment extends Fragment{
                         mFirstVisibleItemPosition = mLinearLayoutManager.findFirstVisibleItemPosition();
 
                         if (mLoading) {
-                            if ((mVisibleItemCount + mFirstVisibleItemPosition + 1) >= mRealm.where(Sleep.class).findAll().size()
+                            if ((mVisibleItemCount + mFirstVisibleItemPosition + 1) >= mRealm.where(Sight.class).findAll().size()
                                     && (mVisibleItemCount + mFirstVisibleItemPosition + 1) >= mTotalItemCount) {
                                 mQuery.removeEventListener(mChildEventListener);
-                                mQuery = mRef.orderByKey().startAt(mSleepsList.get(mSleepsList.size() - 1).getId()).limitToFirst(LOADING_ITEMS_NUMBER);
+                                mQuery = mRef.orderByKey().startAt(mSleepList.get(mSleepList.size() - 1).getId()).limitToFirst(LOADING_ITEMS_NUMBER);
                                 mQuery.addChildEventListener(mChildEventListener);
                             }
                         }
@@ -365,29 +379,29 @@ public class SleepListFragment extends Fragment{
     private void deleteFromList(Sleep pSleep) {
         int index = -1;
         String id = pSleep.getId();
-        for (int i = 0; i < mSleepsList.size(); ++i) {
-            if (mSleepsList.get(i).getId().equals(id))
+        for (int i = 0; i < mSleepList.size(); ++i) {
+            if (mSleepList.get(i).getId().equals(id))
                 index = i;
         }
         if (index != -1) {
-            mSleepsList.remove(index);
-            mAdapter.notifyItemRangeChanged(index, mSleepsList.size() - 1);
+            mSleepList.remove(index);
+            mAdapter.notifyItemRangeChanged(index, mSleepList.size() - 1);
         }
     }
 
     private void updateUI(Sleep pSleep) {
         int index = -1;
         String id = pSleep.getId();
-        for (int i = 0; i < mSleepsList.size(); ++i) {
-            if (mSleepsList.get(i).getId().equals(id))
+        for (int i = 0; i < mSleepList.size(); ++i) {
+            if (mSleepList.get(i).getId().equals(id))
                 index = i;
         }
         if (index == -1) {
-            mSleepsList.add(pSleep);
-            mAdapter.notifyItemChanged(mSleepsList.size() - 1);
+            mSleepList.add(pSleep);
+            mAdapter.notifyItemChanged(mSleepList.size() - 1);
         } else {
-            mSleepsList.remove(index);
-            mSleepsList.add(index, pSleep);
+            mSleepList.remove(index);
+            mSleepList.add(index, pSleep);
             mAdapter.notifyItemChanged(index);
         }
     }
@@ -412,33 +426,40 @@ public class SleepListFragment extends Fragment{
         mLastLocation = activity.getLastLocation();
 
         SharedPreferences prefs = activity.getSharedPreferences(Constants.SHARED_PREFS_SLEEP, Context.MODE_PRIVATE);
-        mRadius = prefs.getFloat(Constants.SHARED_PREFS_KEY_RADIUS, -1);
+        mMyRadius = prefs.getFloat(Constants.SHARED_PREFS_KEY_RADIUS, -1);
 
-        if (mLastLocation == null && !TextUtils.isEmpty(prefs.getString(Constants.SHARED_PREFS_KEY_LAST_LAT, ""))) {
+        SharedPreferences shared = activity.getSharedPreferences(Constants.SHARED_PREFS, Context.MODE_PRIVATE);
+        if (mLastLocation == null && !TextUtils.isEmpty(shared.getString(Constants.SHARED_PREFS_KEY_LAST_LAT, ""))) {
             mLastLocation = new Location("");
-            mLastLocation.setLatitude(Double.valueOf(prefs.getString(Constants.SHARED_PREFS_KEY_LAST_LAT, "")));
-            mLastLocation.setLongitude(Double.valueOf(prefs.getString(Constants.SHARED_PREFS_KEY_LAST_LONG, "")));
+            mLastLocation.setLatitude(Double.valueOf(shared.getString(Constants.SHARED_PREFS_KEY_LAST_LAT, "")));
+            mLastLocation.setLongitude(Double.valueOf(shared.getString(Constants.SHARED_PREFS_KEY_LAST_LONG, "")));
         }
 
         RealmResults<Sleep> results = realmQuery.findAll();
-        mSleepsList.clear();
-        for (Sleep s: results){
-            if(mLastLocation != null && mRadius > 0
-                    && SphericalUtil.computeDistanceBetween(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()),
-                    new LatLng(s.getLatitude(), s.getLongitude())) > mRadius)
+        mSleepList.clear();
+        for (Sleep e: results){
+            if(mRadius != -1 && SphericalUtil.computeDistanceBetween(new LatLng(mLatitude, mLongitude),
+                    new LatLng(e.getLatitude(), e.getLongitude())) > mRadius)
                 continue;
-            mSleepsList.add(s);
+
+            if(mRadius == - 1 && mLastLocation != null && mMyRadius > 0
+                    && SphericalUtil.computeDistanceBetween(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()),
+                    new LatLng(e.getLatitude(), e.getLongitude())) > mMyRadius)
+                continue;
+
+            mSleepList.add(e);
         }
 
         mAdapter.notifyDataSetChanged();
 
-        mRef.removeEventListener(mChildEventListener);
-        mRef.addChildEventListener(mChildEventListener);
+        mQuery.removeEventListener(mChildEventListener);
+        mQuery.addChildEventListener(mChildEventListener);
     }
 
     @Override
     public void onStop() {
         super.onStop();
+        ((NavigationDrawerActivity)getActivity()).disconnect();
         mRealm.close();
         mRef.removeEventListener(mChildEventListener);
         mQuery.removeEventListener(mChildEventListener);
@@ -447,7 +468,10 @@ public class SleepListFragment extends Fragment{
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
-        inflater.inflate(R.menu.items_list, menu);
+        if (mRadius == -1)
+            inflater.inflate(R.menu.items_list, menu);
+        else
+            inflater.inflate(R.menu.items_near, menu);
     }
 
     @Override
@@ -480,8 +504,7 @@ public class SleepListFragment extends Fragment{
 
         public ImageView mPhotoImageView;
         public TextView mNameTextView;
-
-
+        public TextView mLocationTextView;
 
         public SleepHolder(View itemView) {
             super(itemView);
@@ -490,7 +513,7 @@ public class SleepListFragment extends Fragment{
 
 
             mNameTextView = (TextView) itemView.findViewById(R.id.text_view_name_sleep);
-
+            mLocationTextView = (TextView) itemView.findViewById(R.id.text_view_location);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -506,7 +529,7 @@ public class SleepListFragment extends Fragment{
                             manager.beginTransaction()
                                     .replace(R.id.fragment_container, fragment, SleepFragment.FRAGMENT_TAG)
                                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                                    .addToBackStack(SleepFragment.FRAGMENT_TAG)
+                                    .addToBackStack(SightFragment.FRAGMENT_TAG)
                                     .commit();
                         }
                     }
@@ -517,39 +540,17 @@ public class SleepListFragment extends Fragment{
         public void bindSleep(Sleep pSleep) {
             mSleep = pSleep;
 
-
             if (mSleep.getName() != null)
                 mNameTextView.setText(mSleep.getName());
-
-            if(mLastLocation != null) {
-                String url = "https://maps.googleapis.com/maps/api/distancematrix/json";
-                AsyncHttpClient client = new AsyncHttpClient();
-                RequestParams params = new RequestParams();
-                params.put("origins", mLastLocation.getLatitude() + "," + mLastLocation.getLongitude());
-                params.put("destinations", mSleep.getLatitude() + "," + mSleep.getLongitude());
-                params.put("key", Constants.GOOGLE_MATRIX_API_KEY);
-
-            }
-
-
+            if (mSleep.getLocation() != null)
+                mLocationTextView.setText("Location: " + mSleep.getLocation());
 
             Picasso.with(getActivity().getApplicationContext())
                     .load(mSleep.getPhotoUrl())
                     .resize(((NavigationDrawerActivity)getActivity()).getWidth(), 0)
                     .onlyScaleDown()
                     .placeholder(R.drawable.placeholder)
-                    .into(mPhotoImageView, new Callback() {
-                        @Override
-                        public void onSuccess() {
-
-                        }
-
-                        @Override
-                        public void onError() {
-                            Toast.makeText(getActivity(), "Download error", Toast.LENGTH_SHORT).show();
-
-                        }
-                    });
+                    .into(mPhotoImageView);
         }
     }
 
