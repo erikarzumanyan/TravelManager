@@ -14,6 +14,8 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 import com.uniquemiban.travelmanager.R;
 
+import java.util.Calendar;
+
 import github.vatsal.easyweather.Helper.ForecastCallback;
 import github.vatsal.easyweather.Helper.TempUnitConverter;
 import github.vatsal.easyweather.Helper.WeatherCallback;
@@ -29,18 +31,14 @@ public class WeatherFragment extends DialogFragment {
     private static final String ARG_LONGITUDE = "arg_long";
     private static final String ARG_LATITUDE = "arg_lat";
     private static final String OWM_API_KEY = "9a73fe1cc6cd3cc10dddc1cf44a8c7e0";
-
-
+    static int currentDay;
     TextView temperatureText;
     ImageView descriptionImage;
     ImageView sigthImage;
-    TextView mTempMonday;
     TextView mTempTuesday;
     TextView mTempWednesday;
     TextView mTempThursday;
     TextView mTempFriday;
-    TextView mTempSaturday;
-    TextView mTempSunday;
     Double weather;
     WeatherMap weatherMap;
     Weather weatherList[];
@@ -48,9 +46,6 @@ public class WeatherFragment extends DialogFragment {
     private ImageView mIconTuesday;
     private ImageView mIconWednesday;
     private ImageView mIconThursday;
-    private ImageView mIconFriday;
-    private ImageView mIconSaturday;
-    private ImageView mIconSunday;
     private double latitude;
     private double longitude;
     private String backgroundImageUrl;
@@ -91,76 +86,131 @@ public class WeatherFragment extends DialogFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_weather, container, false);
+        final View view = inflater.inflate(R.layout.fragment_weather, container, false);
         getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         temperatureText = (TextView) view.findViewById(R.id.temperatureText);
         descriptionImage = (ImageView) view.findViewById(R.id.descriptionLogo);
         sigthImage = (ImageView) view.findViewById(R.id.sigthImage);
-        mTempMonday = (TextView) view.findViewById(R.id.tempMonday);
         mTempTuesday = (TextView) view.findViewById(R.id.tempTuesday);
         mTempWednesday = (TextView) view.findViewById(R.id.tempWednsday);
         mTempThursday = (TextView) view.findViewById(R.id.tempThursday);
         mTempFriday = (TextView) view.findViewById(R.id.tempFriday);
-        mTempSaturday = (TextView) view.findViewById(R.id.tempSaturday);
-        mTempSunday = (TextView) view.findViewById(R.id.tempSunday);
         mIconMonday = (ImageView) view.findViewById(R.id.icon_monday);
         mIconTuesday = (ImageView) view.findViewById(R.id.icon_thuesday);
         mIconWednesday = (ImageView) view.findViewById(R.id.icon_wednsday);
         mIconThursday = (ImageView) view.findViewById(R.id.icon_thursday);
-        mIconFriday = (ImageView) view.findViewById(R.id.icon_friday);
-        mIconSaturday = (ImageView) view.findViewById(R.id.icon_saturday);
-        mIconSunday = (ImageView) view.findViewById(R.id.icon_sunday);
         Picasso.with(getActivity())
                 .load(backgroundImageUrl)
                 .into(sigthImage);
 
+        //  Date date = new Date();
 
+        //    calendar.setFirstDayOfWeek(Calendar.SUNDAY);
+
+        //    calendar.setTime(date);
+        Calendar calendar = Calendar.getInstance();
+        currentDay = calendar.get(Calendar.DAY_OF_WEEK);
+        //   Log.d("ttt", String.valueOf(currentDay));
+
+
+        switch (currentDay) {
+            case Calendar.MONDAY: {
+                ((TextView) view.findViewById(R.id.text_view_day_1)).setText("Tuesday");
+                ((TextView) view.findViewById(R.id.text_view_day_2)).setText("Wednesday");
+                ((TextView) view.findViewById(R.id.text_view_day_3)).setText("Thursday");
+                ((TextView) view.findViewById(R.id.text_view_day_4)).setText("Friday");
+                Log.d("ttt", String.valueOf(Calendar.MONDAY));
+                break;
+            }
+            case Calendar.TUESDAY: {
+                ((TextView) view.findViewById(R.id.text_view_day_1)).setText("Wednesday");
+                ((TextView) view.findViewById(R.id.text_view_day_2)).setText("Thursday");
+                ((TextView) view.findViewById(R.id.text_view_day_3)).setText("Friday");
+                ((TextView) view.findViewById(R.id.text_view_day_4)).setText("Saturday");
+                Log.d("ttt", String.valueOf(Calendar.TUESDAY));
+                break;
+            }
+            case Calendar.WEDNESDAY: {
+                ((TextView) view.findViewById(R.id.text_view_day_1)).setText("Thursday");
+                ((TextView) view.findViewById(R.id.text_view_day_2)).setText("Friday");
+                ((TextView) view.findViewById(R.id.text_view_day_3)).setText("Saturday");
+                ((TextView) view.findViewById(R.id.text_view_day_4)).setText("Sunday");
+                Log.d("ttt", String.valueOf(Calendar.WEDNESDAY));
+                break;
+            }
+            case Calendar.THURSDAY: {
+                ((TextView) view.findViewById(R.id.text_view_day_1)).setText("Friday");
+                ((TextView) view.findViewById(R.id.text_view_day_2)).setText("Saturday");
+                ((TextView) view.findViewById(R.id.text_view_day_3)).setText("Sunday");
+                ((TextView) view.findViewById(R.id.text_view_day_4)).setText("Monday");
+                Log.d("ttt", String.valueOf(Calendar.THURSDAY));
+                break;
+            }
+            case Calendar.FRIDAY: {
+                ((TextView) view.findViewById(R.id.text_view_day_1)).setText("Saturday");
+                ((TextView) view.findViewById(R.id.text_view_day_2)).setText("Sunday");
+                ((TextView) view.findViewById(R.id.text_view_day_3)).setText("Monday");
+                ((TextView) view.findViewById(R.id.text_view_day_4)).setText("Tuesday");
+                Log.d("ttt", String.valueOf(Calendar.FRIDAY));
+                break;
+            }
+            case Calendar.SATURDAY: {
+                ((TextView) view.findViewById(R.id.text_view_day_1)).setText("Sunday");
+                ((TextView) view.findViewById(R.id.text_view_day_2)).setText("Monday");
+                ((TextView) view.findViewById(R.id.text_view_day_3)).setText("Tuesday");
+                ((TextView) view.findViewById(R.id.text_view_day_4)).setText("Wednesday");
+                Log.d("ttt", String.valueOf(Calendar.SATURDAY));
+                break;
+            }
+            case Calendar.SUNDAY: {
+                ((TextView) view.findViewById(R.id.text_view_day_1)).setText("Monday");
+                ((TextView) view.findViewById(R.id.text_view_day_2)).setText("Tuesday");
+                ((TextView) view.findViewById(R.id.text_view_day_3)).setText("Wednesday");
+                ((TextView) view.findViewById(R.id.text_view_day_4)).setText("Thursday");
+                Log.d("ttt", String.valueOf(Calendar.SUNDAY));
+                break;
+            }
+
+            default:
+                Log.d("ttt", "NO");
+
+        }
         weatherMap.getLocationForecast(String.valueOf(latitude), String.valueOf(longitude), new ForecastCallback() {
             @Override
             public void success(ForecastResponseModel response) {
-                weather = TempUnitConverter.convertToCelsius(response.getList()[0].getMain().getTemp());
-                mTempMonday.setText(weather.intValue() + "°C");
-                weather = TempUnitConverter.convertToCelsius(response.getList()[1].getMain().getTemp());
+
+//                weather = TempUnitConverter.convertToCelsius(response.getList()[0].getMain().getTemp());
+//                mTempMonday.setText(weather.intValue() + "°C");
+
+                //Log.d("qqq", response.getList());
+
+                weather = TempUnitConverter.convertToCelsius(response.getList()[8].getMain().getTemp_max());
                 mTempTuesday.setText(weather.intValue() + "°C");
-                weather = TempUnitConverter.convertToCelsius(response.getList()[2].getMain().getTemp());
+                weather = TempUnitConverter.convertToCelsius(response.getList()[16].getMain().getTemp_max());
                 mTempWednesday.setText(weather.intValue() + "°C");
-                weather = TempUnitConverter.convertToCelsius(response.getList()[3].getMain().getTemp());
+                weather = TempUnitConverter.convertToCelsius(response.getList()[24].getMain().getTemp_max());
                 mTempThursday.setText(weather.intValue() + "°C");
-                weather = TempUnitConverter.convertToCelsius(response.getList()[4].getMain().getTemp());
+                weather = TempUnitConverter.convertToCelsius(response.getList()[32].getMain().getTemp_max());
                 mTempFriday.setText(weather.intValue() + "°C");
-                weather = TempUnitConverter.convertToCelsius(response.getList()[5].getMain().getTemp());
-                mTempSaturday.setText(weather.intValue() + "°C");
-                weather = TempUnitConverter.convertToCelsius(response.getList()[6].getMain().getTemp());
-                mTempSunday.setText(weather.intValue() + "°C");
                 Weather w[];
+
+                w = response.getList()[8].getWeather();
                 String iconLink;
-                w = response.getList()[0].getWeather();
                 iconLink = w[0].getIconLink();
                 Picasso.with(getActivity()).load(iconLink).into(mIconMonday);
 
-                w = response.getList()[1].getWeather();
+                w = response.getList()[16].getWeather();
                 iconLink = w[0].getIconLink();
                 Picasso.with(getActivity()).load(iconLink).into(mIconTuesday);
 
-                w = response.getList()[2].getWeather();
+                w = response.getList()[24].getWeather();
                 iconLink = w[0].getIconLink();
                 Picasso.with(getActivity()).load(iconLink).into(mIconWednesday);
 
-                w = response.getList()[3].getWeather();
+                w = response.getList()[32].getWeather();
                 iconLink = w[0].getIconLink();
                 Picasso.with(getActivity()).load(iconLink).into(mIconThursday);
-
-                w = response.getList()[4].getWeather();
-                iconLink = w[0].getIconLink();
-                Picasso.with(getActivity()).load(iconLink).into(mIconFriday);
-
-                w = response.getList()[5].getWeather();
-                iconLink = w[0].getIconLink();
-                Picasso.with(getActivity()).load(iconLink).into(mIconSaturday);
-
-                w = response.getList()[6].getWeather();
-                iconLink = w[0].getIconLink();
-                Picasso.with(getActivity()).load(iconLink).into(mIconSunday);
+//
 
             }
 
@@ -179,17 +229,16 @@ public class WeatherFragment extends DialogFragment {
         weatherMap.getLocationWeather(String.valueOf(latitude), String.valueOf(longitude), new WeatherCallback() {
             @Override
             public void success(WeatherResponseModel response) {
-                weather = TempUnitConverter.convertToCelsius(response.getMain().getTemp());
+                weather = TempUnitConverter.convertToCelsius(response.getMain().getTemp_max());
                 temperatureText.setText(weather.intValue() + "°C");
                 weatherList = response.getWeather();
-
                 String iconLink = weatherList[0].getIconLink();
                 Picasso.with(getActivity()).load(iconLink).into(descriptionImage);
             }
 
             @Override
             public void failure(String message) {
-                Snackbar.make(getView(), "Connection Error", Snackbar.LENGTH_LONG).show();
+                Snackbar.make(getView().getRootView(), "Connection Error", Snackbar.LENGTH_LONG).show();
 
             }
         });
@@ -200,7 +249,6 @@ public class WeatherFragment extends DialogFragment {
     public void onDetach() {
         super.onDetach();
     }
-
 
 
 }

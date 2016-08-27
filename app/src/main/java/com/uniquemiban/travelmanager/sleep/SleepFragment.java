@@ -1,8 +1,10 @@
 package com.uniquemiban.travelmanager.sleep;
 
 
+
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -15,6 +17,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -28,6 +31,7 @@ import com.uniquemiban.travelmanager.map.GmapFragment;
 import com.uniquemiban.travelmanager.models.Sight;
 import com.uniquemiban.travelmanager.models.Sleep;
 import com.uniquemiban.travelmanager.start.NavigationDrawerActivity;
+import com.uniquemiban.travelmanager.utils.Constants;
 import com.uniquemiban.travelmanager.weather.WeatherFragment;
 
 import java.util.ArrayList;
@@ -35,7 +39,7 @@ import java.util.Random;
 
 import io.realm.Realm;
 
-public class SleepFragment extends Fragment {
+public class SleepFragment extends DialogFragment {
     public static final String FRAGMENT_TAG = "sight_fragment";
     private static final String KEY_ID = "sight_fragment_key_id";
 
@@ -59,6 +63,7 @@ public class SleepFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         mRandom = new Random();
         mOnPageChangeListener = new ViewPagerEx.OnPageChangeListener() {
             @Override
@@ -79,6 +84,7 @@ public class SleepFragment extends Fragment {
         String id = getArguments().getString(KEY_ID);
         mSleep = Realm.getDefaultInstance().where(Sleep.class).equalTo("mId", id).findFirst();
     }
+
 
     @Nullable
     @Override

@@ -26,4 +26,7 @@
     <string name="action_radius">Set Radius</string>
     <string name="action_money">Set Money Amount</string>
 
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
 </resources>

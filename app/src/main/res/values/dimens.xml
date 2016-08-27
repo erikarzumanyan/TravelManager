@@ -13,4 +13,6 @@
     <dimen name="padding">8dp</dimen>
 
     <dimen name="top_bar_size">24dp</dimen>
+    <dimen name="custom_profile_image">50dp</dimen>
+    <dimen name="custom_profile_padding">50dp</dimen>
 </resources>
