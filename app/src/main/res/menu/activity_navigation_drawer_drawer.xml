@@ -14,10 +14,10 @@
             android:id="@+id/nav_eating"
             android:icon="@drawable/ic_eating_24dp"
             android:title="@string/nav_eating" />
-        <item
-            android:id="@+id/nav_amusement"
-            android:icon="@drawable/ic_amusement_24dp"
-            android:title="@string/nav_amusement" />
+        <!--<item-->
+            <!--android:id="@+id/nav_amusement"-->
+            <!--android:icon="@drawable/ic_amusement_24dp"-->
+            <!--android:title="@string/nav_amusement" />-->
         <item
             android:id="@+id/nav_tours"
             android:icon="@drawable/ic_tours_24dp"
@@ -29,22 +29,22 @@
             android:title="@string/nav_map" />
     </group>
 
-    <item android:title="Communicate">
-        <menu>
-            <item
-                android:id="@+id/nav_share"
-                android:icon="@drawable/ic_menu_share"
-                android:title="Share" />
+    <!--<item android:title="Communicate">-->
+        <!--<menu>-->
+            <!--<item-->
+                <!--android:id="@+id/nav_share"-->
+                <!--android:icon="@drawable/ic_menu_share"-->
+                <!--android:title="Share" />-->
 
-        </menu>
-    </item>
+        <!--</menu>-->
+    <!--</item>-->
 
     <item android:title="User">
         <menu>
             <item
                 android:id="@+id/nav_sign_in"
                 android:icon="@drawable/ic_menu_share"
-                android:title="Sign In" />
+                android:title="Sign In"/>
 
             <item
                 android:id="@+id/nav_sign_out"

@@ -1,10 +1,12 @@
 package com.uniquemiban.travelmanager.login;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -75,6 +77,7 @@ public class RegisterActivity extends AppCompatActivity {
         if(!TextUtils.isEmpty(passwordLogin))
             mPasswordEditText.setText(passwordLogin);
 
+        final ProgressDialog progressDialog = new ProgressDialog(this, DialogFragment.STYLE_NO_FRAME);
         findViewById(R.id.button_create_account_register).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View pView) {
@@ -98,6 +101,8 @@ public class RegisterActivity extends AppCompatActivity {
                 final FirebaseAuth auth = FirebaseAuth.getInstance();
 
                 final StorageReference storage = FirebaseStorage.getInstance().getReferenceFromUrl("gs://travelmanager-701b9.appspot.com");
+
+                progressDialog.show();
 
                 auth.createUserWithEmailAndPassword(mEmailEditText.getText().toString(), mPasswordEditText.getText().toString())
                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -142,11 +147,13 @@ public class RegisterActivity extends AppCompatActivity {
 
                                     getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE).edit().putString(LoginActivity.SHARED_NAME, mNameEditText.getText().toString()).commit();
 
+                                    progressDialog.dismiss();
                                     Toast.makeText(RegisterActivity.this, "Account Was Created!", Toast.LENGTH_LONG).show();
                                     startActivity(new Intent(RegisterActivity.this, NavigationDrawerActivity.class));
                                     finish();
                                 } else {
-                                    Toast.makeText(RegisterActivity.this, pTask.getException().toString(), Toast.LENGTH_LONG).show();
+                                    progressDialog.dismiss();
+                                    Toast.makeText(RegisterActivity.this, pTask.getException().getMessage(), Toast.LENGTH_LONG).show();
                                 }
                             }
                         });

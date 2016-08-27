@@ -65,6 +65,10 @@ public class FilterFragment extends DialogFragment {
                     public void onClick(DialogInterface pDialogInterface, int pI) {
                         String r = radiusEditText.getText().toString();
                         Float radius = null;
+
+                        if(r != null && r.equals(""))
+                            mPrefs.edit().putFloat(Constants.SHARED_PREFS_KEY_RADIUS, -1).commit();
+
                         try {
                             radius = Float.parseFloat(r);
                         } catch (Exception e){}

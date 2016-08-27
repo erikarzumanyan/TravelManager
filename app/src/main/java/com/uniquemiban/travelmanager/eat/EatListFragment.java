@@ -2,6 +2,8 @@ package com.uniquemiban.travelmanager.eat;
 
 
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.support.v4.app.Fragment;
@@ -13,6 +15,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -48,6 +51,7 @@ import com.uniquemiban.travelmanager.models.Sight;
 import com.uniquemiban.travelmanager.sight.SightFragment;
 import com.uniquemiban.travelmanager.start.NavigationDrawerActivity;
 import com.uniquemiban.travelmanager.utils.Constants;
+import com.uniquemiban.travelmanager.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -118,26 +122,9 @@ public class EatListFragment extends Fragment {
             mLongitude = bundle.getDouble(ARG_LONGITUDE);
             mLatitude = bundle.getDouble(ARG_LATITUDE);
             mRadius = bundle.getDouble(ARG_RADIUS);
-        } else{
-            NavigationDrawerActivity activity = ((NavigationDrawerActivity)getActivity());
-            mLastLocation = activity.getLastLocation();
-            mMyRadius = activity.getSharedPreferences(Constants.SHARED_PREFS_EAT, Context.MODE_PRIVATE).getFloat(Constants.SHARED_PREFS_KEY_RADIUS, -1);
         }
 
         mEatList = new ArrayList<>();
-
-//        RealmResults<Eat> results = mRealm.where(Eat.class).findAll();
-//
-//        for (Eat eat : results) {
-//            if(mRadius != -1 && SphericalUtil.computeDistanceBetween(new LatLng(mLatitude, mLongitude), new LatLng(eat.getLatitude(), eat.getLongitude())) > mRadius)
-//                continue;
-//            if(mLastLocation != null && mMyRadius > 0
-//                    && SphericalUtil.computeDistanceBetween(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()),
-//                    new LatLng(eat.getLatitude(), eat.getLongitude())) > mMyRadius)
-//                continue;
-//
-//            mEatList.add(eat);
-//        }
 
         mChildEventListener = new ChildEventListener() {
             @Override
@@ -333,7 +320,13 @@ public class EatListFragment extends Fragment {
     public void onStart() {
         super.onStart();
 
-        ((NavigationDrawerActivity)getActivity()).connect();
+        NavigationDrawerActivity activity = ((NavigationDrawerActivity)getActivity());
+        activity.connect();
+
+        if(mRadius == -1){
+            mLastLocation = activity.getLastLocation();
+            mMyRadius = activity.getSharedPreferences(Constants.SHARED_PREFS, Context.MODE_PRIVATE).getFloat(Constants.SHARED_PREFS_KEY_RADIUS, -1);
+        }
 
         if (mRealm.isClosed())
             mRealm = Realm.getDefaultInstance();
@@ -439,10 +432,11 @@ public class EatListFragment extends Fragment {
         SharedPreferences prefs = activity.getSharedPreferences(Constants.SHARED_PREFS_EAT, Context.MODE_PRIVATE);
         mMyRadius = prefs.getFloat(Constants.SHARED_PREFS_KEY_RADIUS, -1);
 
-        if (mLastLocation == null && !TextUtils.isEmpty(prefs.getString(Constants.SHARED_PREFS_KEY_LAST_LAT, ""))) {
+        SharedPreferences shared = activity.getSharedPreferences(Constants.SHARED_PREFS, Context.MODE_PRIVATE);
+        if (mLastLocation == null && !TextUtils.isEmpty(shared.getString(Constants.SHARED_PREFS_KEY_LAST_LAT, ""))) {
             mLastLocation = new Location("");
-            mLastLocation.setLatitude(Double.valueOf(prefs.getString(Constants.SHARED_PREFS_KEY_LAST_LAT, "")));
-            mLastLocation.setLongitude(Double.valueOf(prefs.getString(Constants.SHARED_PREFS_KEY_LAST_LONG, "")));
+            mLastLocation.setLatitude(Double.valueOf(shared.getString(Constants.SHARED_PREFS_KEY_LAST_LAT, "")));
+            mLastLocation.setLongitude(Double.valueOf(shared.getString(Constants.SHARED_PREFS_KEY_LAST_LONG, "")));
         }
 
         RealmResults<Eat> results = realmQuery.findAll();
@@ -462,8 +456,8 @@ public class EatListFragment extends Fragment {
 
         mAdapter.notifyDataSetChanged();
 
-        mRef.removeEventListener(mChildEventListener);
-        mRef.addChildEventListener(mChildEventListener);
+        mQuery.removeEventListener(mChildEventListener);
+        mQuery.addChildEventListener(mChildEventListener);
     }
 
     @Override
@@ -502,8 +496,25 @@ public class EatListFragment extends Fragment {
                 }
             });
         } else if(id == R.id.action_filter){
-            FilterFragment fragment = FilterFragment.newInstance(Constants.SHARED_PREFS_EAT);
-            fragment.show(((NavigationDrawerActivity)getActivity()).getSupportFragmentManager(), FilterFragment.FRAGMENT_TAG);
+            if (mLastLocation != null) {
+
+                FilterFragment fragment = FilterFragment.newInstance(Constants.SHARED_PREFS_EAT);
+                fragment.show(((NavigationDrawerActivity) getActivity()).getSupportFragmentManager(), FilterFragment.FRAGMENT_TAG);
+
+            } else {
+
+                if (!Utils.isLocationEnabled(getActivity())) {
+                    new AlertDialog.Builder(getActivity())
+                            .setTitle("Radius Settings")
+                            .setMessage("If you want set the radius from you enable location")
+                            .setPositiveButton("Enable", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface pDialogInterface, int pI) {
+                                    startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                                }
+                            }).setNegativeButton("Cancel", null).create().show();
+                }
+            }
         }
         return super.onOptionsItemSelected(item);
     }

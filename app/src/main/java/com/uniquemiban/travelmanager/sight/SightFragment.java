@@ -47,7 +47,9 @@ import com.uniquemiban.travelmanager.login.LoginActivity;
 import com.uniquemiban.travelmanager.map.GmapFragment;
 import com.uniquemiban.travelmanager.models.Sight;
 import com.uniquemiban.travelmanager.rate.RateFragment;
+import com.uniquemiban.travelmanager.sleep.SleepListFragment;
 import com.uniquemiban.travelmanager.start.NavigationDrawerActivity;
+import com.uniquemiban.travelmanager.tour.TourListFragment;
 import com.uniquemiban.travelmanager.utils.Constants;
 import com.uniquemiban.travelmanager.weather.WeatherFragment;
 
@@ -179,7 +181,43 @@ public class SightFragment extends Fragment {
                         manager.beginTransaction()
                                 .replace(R.id.fragment_container, fragment, EatListFragment.FRAGMENT_TAG_RADIUS)
                                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                                .addToBackStack(GmapFragment.FRAGMENT_TAG)
+                                .addToBackStack(EatListFragment.FRAGMENT_TAG)
+                                .commit();
+                    }
+                }
+            });
+
+            v.findViewById(R.id.text_view_sleep_sight_fragment).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View pView) {
+                    FragmentManager manager = ((NavigationDrawerActivity) getActivity()).getSupportFragmentManager();
+
+                    Fragment fragment = manager.findFragmentByTag(SleepListFragment.FRAGMENT_TAG_RADIUS);
+                    if (fragment == null) {
+                        fragment = SleepListFragment.newInstance(mSight.getLongitude(), mSight.getLatitude(), Constants.RADIUS);
+
+                        manager.beginTransaction()
+                                .replace(R.id.fragment_container, fragment, SleepListFragment.FRAGMENT_TAG_RADIUS)
+                                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                                .addToBackStack(SleepListFragment.FRAGMENT_TAG)
+                                .commit();
+                    }
+                }
+            });
+
+            v.findViewById(R.id.text_view_tours_sight_fragment).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View pView) {
+                    FragmentManager manager = ((NavigationDrawerActivity) getActivity()).getSupportFragmentManager();
+
+                    Fragment fragment = manager.findFragmentByTag(TourListFragment.FRAGMENT_TAG_RADIUS);
+                    if (fragment == null) {
+                        fragment = TourListFragment.newInstance(mSight.getName());
+
+                        manager.beginTransaction()
+                                .replace(R.id.fragment_container, fragment, TourListFragment.FRAGMENT_TAG_RADIUS)
+                                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                                .addToBackStack(TourListFragment.FRAGMENT_TAG)
                                 .commit();
                     }
                 }
