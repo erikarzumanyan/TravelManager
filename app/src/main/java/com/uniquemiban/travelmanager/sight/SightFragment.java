@@ -1,5 +1,6 @@
 package com.uniquemiban.travelmanager.sight;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -8,6 +9,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -20,6 +22,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
@@ -61,7 +64,7 @@ import github.vatsal.easyweather.WeatherMap;
 import github.vatsal.easyweather.retrofit.models.WeatherResponseModel;
 import io.realm.Realm;
 
-public class SightFragment extends Fragment {
+public class SightFragment extends DialogFragment {
 
     public static final String FRAGMENT_TAG = "sight_fragment";
     private static final String KEY_ID = "sight_fragment_key_id";
@@ -97,9 +100,12 @@ public class SightFragment extends Fragment {
         mWeatherMap = new WeatherMap(getActivity(), Constants.OWM_API_KEY);
     }
 
+
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+
         final View v = inflater.inflate(R.layout.fragment_sight, container, false);
 
         setHasOptionsMenu(true);
@@ -124,15 +130,15 @@ public class SightFragment extends Fragment {
         v.findViewById(R.id.parallax_scroll_view_fragment_sight).setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View pView, MotionEvent pMotionEvent) {
-                switch (pMotionEvent.getAction()){
+                switch (pMotionEvent.getAction()) {
                     case MotionEvent.ACTION_DOWN:
-                        mDown = (int)pMotionEvent.getY();
+                        mDown = (int) pMotionEvent.getY();
                         break;
                     case MotionEvent.ACTION_UP:
-                        mUp = (int)pMotionEvent.getY();
-                        if(mUp - mDown < -mDist){
+                        mUp = (int) pMotionEvent.getY();
+                        if (mUp - mDown < -mDist) {
                             bar.hide();
-                        } else if (mUp - mDown > mDist){
+                        } else if (mUp - mDown > mDist) {
                             bar.show();
                         }
                         break;
@@ -227,26 +233,16 @@ public class SightFragment extends Fragment {
                 @Override
                 public void success(WeatherResponseModel response) {
                     Double weather = TempUnitConverter.convertToCelsius(response.getMain().getTemp());
-                    ((TextView)v.findViewById(R.id.text_view_weather_sight_fragment)).setText(weather.intValue() + "°C");
+                    ((TextView) v.findViewById(R.id.text_view_weather_sight_fragment)).setText(weather.intValue() + "°C");
                 }
+
 
                 @Override
                 public void failure(String message) {
-                    //Snackbar.make(getView(), "Connection Error", Snackbar.LENGTH_LONG).show();
-                    mWeatherMap.getLocationWeather(String.valueOf(mSight.getLatitude()), String.valueOf(mSight.getLongitude()), new WeatherCallback() {
-                        @Override
-                        public void success(WeatherResponseModel response) {
-                            Double weather = TempUnitConverter.convertToCelsius(response.getMain().getTemp());
-                            ((TextView)v.findViewById(R.id.text_view_weather_sight_fragment)).setText(weather.intValue() + "°C");
-                        }
-
-                        @Override
-                        public void failure(String message) {
-                            ((TextView)v.findViewById(R.id.text_view_weather_sight_fragment)).setText("N/A");
-                        }
-                    });
+                    ((TextView) v.findViewById(R.id.text_view_weather_sight_fragment)).setText("N/A");
                 }
             });
+
 
             final TextView rateTextView = (TextView)v.findViewById(R.id.text_view_rate_sight_fragment);
             final RatingBar rateRatingBar = (RatingBar)v.findViewById(R.id.rating_bar_fragment_sight);

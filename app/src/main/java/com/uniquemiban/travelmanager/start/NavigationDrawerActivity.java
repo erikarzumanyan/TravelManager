@@ -41,6 +41,8 @@ import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.uniquemiban.travelmanager.eat.EatListFragment;
+import com.uniquemiban.travelmanager.map.GmapFragment;
+import com.uniquemiban.travelmanager.map.GmapMainFragment;
 import com.uniquemiban.travelmanager.sleep.SleepListFragment;
 import com.uniquemiban.travelmanager.tour.TourListFragment;
 import com.uniquemiban.travelmanager.utils.Constants;
@@ -60,7 +62,6 @@ public class NavigationDrawerActivity extends AppCompatActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         int uiOps = getWindow().getDecorView().getSystemUiVisibility();
         uiOps |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
@@ -91,7 +92,6 @@ public class NavigationDrawerActivity extends AppCompatActivity
                 && !getSharedPreferences(Constants.SHARED_PREFS, MODE_PRIVATE).getBoolean(LoginActivity.SHARED_SKIP, false)) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
-            return;
         }
 
         final SharedPreferences userPrefs = getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE);
@@ -292,8 +292,19 @@ public class NavigationDrawerActivity extends AppCompatActivity
                         .commit();
             }
         } else if (id == R.id.nav_map) {
+            Fragment fragment = manager.findFragmentByTag(GmapMainFragment.FRAGMENT_TAG);
 
-        } else if (id == R.id.nav_sign_in) {
+            if (fragment == null) {
+                fragment =new GmapMainFragment();
+                manager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                manager.beginTransaction()
+                        .replace(R.id.fragment_container, fragment, GmapMainFragment.FRAGMENT_TAG)
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                        .commit();
+            }
+
+
+        }  else if (id == R.id.nav_sign_in) {
             View header = ((NavigationView) findViewById(R.id.nav_view)).getHeaderView(0);
             header.findViewById(R.id.image_view_profile_pic_nav_header).setVisibility(View.VISIBLE);
 
@@ -333,10 +344,10 @@ public class NavigationDrawerActivity extends AppCompatActivity
                 mGoogleApiClient);
 
         if(mLastLocation != null) {
-            getSharedPreferences(Constants.SHARED_PREFS, Context.MODE_PRIVATE).edit()
+            getSharedPreferences(Constants.SHARED_PREFS_SIGHT, Context.MODE_PRIVATE).edit()
                     .putString(Constants.SHARED_PREFS_KEY_LAST_LAT, mLastLocation.getLatitude() + "").commit();
-            getSharedPreferences(Constants.SHARED_PREFS, Context.MODE_PRIVATE).edit()
-                    .putString(Constants.SHARED_PREFS_KEY_LAST_LONG, mLastLocation.getLongitude() + "").commit();
+            getSharedPreferences(Constants.SHARED_PREFS_SIGHT, Context.MODE_PRIVATE).edit()
+                    .putString(Constants.SHARED_PREFS_KEY_LAST_LONG, mLastLocation.getLongitude() + "").apply();
         }
 
     }

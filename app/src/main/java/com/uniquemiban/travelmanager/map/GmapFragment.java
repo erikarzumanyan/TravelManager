@@ -2,6 +2,7 @@ package com.uniquemiban.travelmanager.map;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
@@ -10,9 +11,12 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.akexorcist.googledirection.DirectionCallback;
@@ -29,12 +33,28 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterManager;
+import com.google.maps.android.clustering.view.DefaultClusterRenderer;
+import com.google.maps.android.ui.IconGenerator;
 import com.uniquemiban.travelmanager.R;
+import com.uniquemiban.travelmanager.models.Eat;
+import com.uniquemiban.travelmanager.models.Sight;
+import com.uniquemiban.travelmanager.utils.Constants;
 
 import java.util.ArrayList;
+
+import io.realm.Realm;
+import io.realm.RealmResults;
 
 
 public class GmapFragment extends Fragment implements OnMapReadyCallback, DirectionCallback, LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -43,8 +63,12 @@ public class GmapFragment extends Fragment implements OnMapReadyCallback, Direct
     private static final String ARG_TITLE = "arg_title";
     private static final String ARG_LONGITUDE = "arg_longitude";
     private static final String ARG_LATITUDE = "arg_latitude";
+    private static final String ARG_ALL_PLACES = "arg_getAllPlaces";
+    private static final String ARG_ALL_PLACES2 = "arg_getAllPlaces";
+    private static Bundle bundle;
 
-
+    LocationMarker mSightsDestinations;
+    LocationMarker mEatsDirections;
     private GoogleMap mMap;
     private String serverKey = "AIzaSyDajDviN69XW2QVkOLmL1ZtVPAB9TZ6Dms";
     private LatLng origin;
@@ -57,22 +81,37 @@ public class GmapFragment extends Fragment implements OnMapReadyCallback, Direct
     private double mMyLat;
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
+    private RealmResults<Eat> mEats;
+    private RealmResults mSights;
+    private Realm realm;
+    private RealmResults<Sight> sightsResults;
 
     public static GmapFragment newInstance(String pTitle, double pLongitude, double pLatitude) {
+
         GmapFragment fragment = new GmapFragment();
-        Bundle bundle = new Bundle();
+        bundle = new Bundle();
         bundle.putString(ARG_TITLE, pTitle);
         bundle.putDouble(ARG_LONGITUDE, pLongitude);
         bundle.putDouble(ARG_LATITUDE, pLatitude);
+
         fragment.setArguments(bundle);
         return fragment;
     }
 
 
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_gmaps, container, false);
+        View view = inflater.inflate(R.layout.fragment_gmaps, container, false);
+
+        View locationButton = ((View) view.findViewById(1).getParent()).findViewById(2);
+
+        RelativeLayout.LayoutParams rlp = (RelativeLayout.LayoutParams) locationButton.getLayoutParams();
+        rlp.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
+        rlp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+        rlp.setMargins(0, 0, 30, 30);
+        return view;
     }
 
     @Override
@@ -99,38 +138,45 @@ public class GmapFragment extends Fragment implements OnMapReadyCallback, Direct
                     .build();
         }
 
-        destination = new LatLng(getArguments().getDouble(ARG_LATITUDE), getArguments().getDouble(ARG_LONGITUDE));
+
     }
 
     @Override
     public void onStop() {
         super.onStop();
         mGoogleApiClient.disconnect();
+
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
-        Bundle bundle = getArguments();
-        mLng = bundle.getDouble(ARG_LONGITUDE);
-        mLat = bundle.getDouble(ARG_LATITUDE);
-        mTitle = bundle.getString(ARG_TITLE);
 
         mMap = googleMap;
-
+       bundle  = getArguments();
         setUpClusterer();
+
+
+            mLng = bundle.getDouble(ARG_LONGITUDE);
+            mLat = bundle.getDouble(ARG_LATITUDE);
+            mTitle = bundle.getString(ARG_TITLE);
+            destination = new LatLng(getArguments().getDouble(ARG_LATITUDE), getArguments().getDouble(ARG_LONGITUDE));
+
+
+
 
     }
 
     public void requestDirection() {
-        Snackbar.make(getView(), "Direction Requesting...", Snackbar.LENGTH_SHORT).show();
-        GoogleDirection.withServerKey(serverKey)
-                .from(origin)
-                .to(destination)
-                .transportMode(TransportMode.DRIVING)
-                .execute(this);
+        if (!getArguments().getBoolean(ARG_ALL_PLACES)) {
+            Snackbar.make(getView(), "Direction Requesting...", Snackbar.LENGTH_SHORT).show();
+            GoogleDirection.withServerKey(serverKey)
+                    .from(origin)
+                    .to(destination)
+                    .transportMode(TransportMode.DRIVING)
+                    .execute(this);
 
-
+        }
     }
 
 
@@ -149,6 +195,7 @@ public class GmapFragment extends Fragment implements OnMapReadyCallback, Direct
         }
     }
 
+
     @Override
     public void onDirectionFailure(Throwable t) {
         Snackbar.make(getView(), t.getMessage(), Snackbar.LENGTH_SHORT).show();
@@ -157,9 +204,6 @@ public class GmapFragment extends Fragment implements OnMapReadyCallback, Direct
 
     private void setUpClusterer() {
         mClusterManager = new ClusterManager<>(getActivity(), mMap);
-
-        // Point the map's listeners at the listeners implemented by the cluster
-        // manager.
         mMap.setOnCameraChangeListener(mClusterManager);
         mMap.setOnMarkerClickListener(mClusterManager);
         if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -167,8 +211,7 @@ public class GmapFragment extends Fragment implements OnMapReadyCallback, Direct
             return;
         }
         mMap.setMyLocationEnabled(true);
-        LocationMarker offsetItem = new LocationMarker(mLat, mLng);
-        mClusterManager.addItem(offsetItem);
+
     }
 
 
@@ -193,7 +236,7 @@ public class GmapFragment extends Fragment implements OnMapReadyCallback, Direct
             mMyLat = mLastLocation.getLatitude();
             mMyLng = mLastLocation.getLongitude();
             origin = new LatLng(mMyLat, mMyLng);
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(origin, 10));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destination, 10));
 
 //            LocationMarker originMarker=new LocationMarker(origin.latitude,origin.longitude);
 //            LocationMarker destinationMarker=new LocationMarker(destination.latitude,destination.longitude);
@@ -214,4 +257,10 @@ public class GmapFragment extends Fragment implements OnMapReadyCallback, Direct
     public void onConnectionFailed(@NonNull ConnectionResult pConnectionResult) {
 
     }
-}
+
+
+
+    }
+
+
+

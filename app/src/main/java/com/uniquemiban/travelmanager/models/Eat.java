@@ -24,9 +24,7 @@ public class Eat extends RealmObject {
         mAbout = "";
         mCategory = "";
         mLocation = "";
-        mPhotoUrl = "";
-        mPhoto1Url = "";
-        mPhoto2Url = "";
+
     }
 
     public String getAbout() {
