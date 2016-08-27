@@ -13,14 +13,18 @@ public class Tour extends RealmObject {
     private int mPrice;
     private String mPhotoUrl;
     private String mAbout;
-    private int  mRate ;
     private double mLatitude;
     private double mLongitude;
     private String mNumber;
     private String mFacebookUrl;
 
     public Tour(){
-
+        mName = "";
+        mTourOperatorName = "";
+        mPhotoUrl = "";
+        mAbout = "";
+        mNumber = "";
+        mFacebookUrl = "";
     }
 
 
@@ -31,7 +35,6 @@ public class Tour extends RealmObject {
         mPrice = pPrice;
         mPhotoUrl = pPhotoUrl;
         mAbout = pAbout;
-        mRate = pRate;
         mLatitude = pLatitude;
         mLongitude = pLongitude;
         mNumber = pNumber;
@@ -119,11 +122,4 @@ public class Tour extends RealmObject {
         mAbout = pAbout;
     }
 
-    public int getRate() {
-        return mRate;
-    }
-
-    public void setRate(int pRate) {
-        mRate = pRate;
-    }
 }

@@ -25,7 +25,7 @@ public class FilterFragment extends DialogFragment {
 
     public static final String FRAGMENT_TAG = "filter_fragment_tag";
 
-    private static final String KEY_PREFS = "key_preferences";
+    private static final String KEY_PREFS = "key_preferences_radius";
 
     private SharedPreferences mPrefs;
 
@@ -82,8 +82,6 @@ public class FilterFragment extends DialogFragment {
                             ((EatListFragment)manager.findFragmentByTag(EatListFragment.FRAGMENT_TAG)).searchItemsByRadius();
                         } else if(manager.findFragmentByTag(SleepListFragment.FRAGMENT_TAG) != null){
                             ((SleepListFragment)manager.findFragmentByTag(SleepListFragment.FRAGMENT_TAG)).searchItemsByRadius();
-                        } else if(manager.findFragmentByTag(TourListFragment.FRAGMENT_TAG) != null){
-                            ((TourListFragment)manager.findFragmentByTag(TourListFragment.FRAGMENT_TAG)).searchItemsByRadius();
                         }
                         else {
                             ((SightsListFragment)manager.findFragmentByTag(SightsListFragment.FRAGMENT_TAG)).searchItemsByRadius();

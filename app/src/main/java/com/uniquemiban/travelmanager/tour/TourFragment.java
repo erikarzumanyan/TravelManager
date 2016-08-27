@@ -139,7 +139,12 @@ public class TourFragment extends Fragment {
                         Toast.makeText(getActivity(), "This device doesn't support call function! :D", Toast.LENGTH_LONG).show();
                         return;
                     }
-                    startActivity(intent);
+
+                    String permission="android.permission.CALL_PHONE";
+                    int res=getContext().checkCallingOrSelfPermission(permission);
+                    if(res!=-1)
+                        startActivity(intent);
+                    else Toast.makeText(getActivity(),"Need call premission",Toast.LENGTH_LONG).show();
                 }
             });
 
@@ -150,7 +155,6 @@ public class TourFragment extends Fragment {
                     startActivity(browserIntent);
                 }
             });
-
 
         }
 
@@ -168,7 +172,6 @@ public class TourFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
-        inflater.inflate(R.menu.tour, menu);
     }
 
     @Override

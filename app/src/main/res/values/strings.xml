@@ -24,5 +24,6 @@
     <string name="action_location">Location</string>
     <string name="action_weather">Weather</string>
     <string name="action_radius">Set Radius</string>
+    <string name="action_money">Set Money Amount</string>
 
 </resources>
