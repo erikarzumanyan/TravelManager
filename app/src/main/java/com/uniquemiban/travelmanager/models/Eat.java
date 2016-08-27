@@ -14,7 +14,6 @@ public class Eat extends RealmObject {
     private String mPhotoUrl;
     private String mPhoto1Url;
     private String mPhoto2Url;
-
     private double mLongitude;
     private double mLatitude;
     private String mLocation;
