@@ -21,7 +21,6 @@ public class Tour extends RealmObject {
     public Tour(){
         mName = "";
         mTourOperatorName = "";
-        mPhotoUrl = "";
         mAbout = "";
         mNumber = "";
         mFacebookUrl = "";

@@ -60,6 +60,8 @@ public class NavigationDrawerActivity extends AppCompatActivity
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
 
+    private Menu mNavMenu;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         int uiOps = getWindow().getDecorView().getSystemUiVisibility();
@@ -87,6 +89,16 @@ public class NavigationDrawerActivity extends AppCompatActivity
         }
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        mNavMenu  = ((NavigationView)findViewById(R.id.nav_view)).getMenu();
+
+        if(user != null) {
+            mNavMenu.findItem(R.id.nav_sign_in).setVisible(false);
+            mNavMenu.findItem(R.id.nav_sign_out).setVisible(true);
+        } else {
+            mNavMenu.findItem(R.id.nav_sign_in).setVisible(true);
+            mNavMenu.findItem(R.id.nav_sign_out).setVisible(false);
+        }
 
         if (user == null
                 && !getSharedPreferences(Constants.SHARED_PREFS, MODE_PRIVATE).getBoolean(LoginActivity.SHARED_SKIP, false)) {
@@ -295,7 +307,7 @@ public class NavigationDrawerActivity extends AppCompatActivity
             Fragment fragment = manager.findFragmentByTag(GmapMainFragment.FRAGMENT_TAG);
 
             if (fragment == null) {
-                fragment =new GmapMainFragment();
+                fragment = new GmapMainFragment();
                 manager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 manager.beginTransaction()
                         .replace(R.id.fragment_container, fragment, GmapMainFragment.FRAGMENT_TAG)
@@ -305,6 +317,7 @@ public class NavigationDrawerActivity extends AppCompatActivity
 
 
         }  else if (id == R.id.nav_sign_in) {
+
             View header = ((NavigationView) findViewById(R.id.nav_view)).getHeaderView(0);
             header.findViewById(R.id.image_view_profile_pic_nav_header).setVisibility(View.VISIBLE);
 
@@ -312,6 +325,9 @@ public class NavigationDrawerActivity extends AppCompatActivity
             startActivity(new Intent(this, LoginActivity.class));
             finish();
         } else if (id == R.id.nav_sign_out) {
+            mNavMenu.findItem(R.id.nav_sign_in).setVisible(true);
+            mNavMenu.findItem(R.id.nav_sign_out).setVisible(false);
+
             String photoUrl = getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE).getString(LoginActivity.SHARED_PHOTO_URL, "");
             if(photoUrl != null)
                 Picasso.with(this).invalidate(photoUrl);
@@ -327,6 +343,8 @@ public class NavigationDrawerActivity extends AppCompatActivity
 
             ((TextView) header.findViewById(R.id.text_view_user_name_nav_header)).setText("");
             ((TextView) header.findViewById(R.id.text_view_email_nav_header)).setText("");
+
+            Toast.makeText(this, "Successfully signed out", Toast.LENGTH_LONG).show();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -361,4 +379,6 @@ public class NavigationDrawerActivity extends AppCompatActivity
     public void onConnectionFailed(@NonNull ConnectionResult pConnectionResult) {
 
     }
+
+    
 }

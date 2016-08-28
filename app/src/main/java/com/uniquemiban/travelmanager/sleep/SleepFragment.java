@@ -19,17 +19,25 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.daimajia.slider.library.SliderLayout;
 import com.daimajia.slider.library.SliderTypes.BaseSliderView;
+import com.daimajia.slider.library.SliderTypes.DefaultSliderView;
 import com.daimajia.slider.library.SliderTypes.TextSliderView;
 import com.daimajia.slider.library.Tricks.ViewPagerEx;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 import com.uniquemiban.travelmanager.R;
 import com.uniquemiban.travelmanager.map.GmapFragment;
 import com.uniquemiban.travelmanager.models.Sight;
 import com.uniquemiban.travelmanager.models.Sleep;
+import com.uniquemiban.travelmanager.rate.RateFragment;
 import com.uniquemiban.travelmanager.start.NavigationDrawerActivity;
 import com.uniquemiban.travelmanager.utils.Constants;
 import com.uniquemiban.travelmanager.weather.WeatherFragment;
@@ -43,14 +51,13 @@ public class SleepFragment extends DialogFragment {
     public static final String FRAGMENT_TAG = "sight_fragment";
     private static final String KEY_ID = "sight_fragment_key_id";
 
-    private static final String WEATHER_TAG = "weather_tag_sight";
-
     private Sleep mSleep;
     private int mDown, mUp, mDist = 5;
 
     private SliderLayout mSliderShow;
-    private Random mRandom;
-    private ViewPagerEx.OnPageChangeListener mOnPageChangeListener;
+
+    DatabaseReference mRef;
+    ValueEventListener mValueEventListener;
 
     public static SleepFragment newInstance(String pId){
         SleepFragment fragment = new SleepFragment();
@@ -64,23 +71,6 @@ public class SleepFragment extends DialogFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mRandom = new Random();
-        mOnPageChangeListener = new ViewPagerEx.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-            }
-
-            @Override
-            public void onPageSelected(int position) {
-                setTransition(mRandom.nextInt(4));
-            }
-
-            @Override
-            public void onPageScrollStateChanged(int state) {
-                setTransition(mRandom.nextInt(4));
-            }
-        };
         String id = getArguments().getString(KEY_ID);
         mSleep = Realm.getDefaultInstance().where(Sleep.class).equalTo("mId", id).findFirst();
     }
@@ -142,9 +132,8 @@ public class SleepFragment extends DialogFragment {
             list.add(mSleep.getPhoto2Url());
 
             for (String url : list) {
-                TextSliderView textSliderView = new TextSliderView(getActivity());
+                DefaultSliderView textSliderView = new DefaultSliderView(getActivity());
                 textSliderView
-                        .description("Location: " + mSleep.getLocation())
                         .image(url)
                         .setScaleType(BaseSliderView.ScaleType.CenterCrop)
                         .setPicasso(Picasso.with(getActivity().getApplicationContext()));
@@ -152,15 +141,54 @@ public class SleepFragment extends DialogFragment {
                 mSliderShow.setDuration(5000);
                 mSliderShow.setSliderTransformDuration(2000, null);
                 mSliderShow.addSlider(textSliderView);
-
-                setTransition(mRandom.nextInt(4));
+                mSliderShow.setPresetTransformer(SliderLayout.Transformer.Stack);
             }
 
             ((TextView)v.findViewById(R.id.text_view_name_sleep_fragment)).setText(mSleep.getName());
+            ((TextView)v.findViewById(R.id.text_view_category_sleep_fragment)).setText(mSleep.getCategory());
 
             ((TextView)v.findViewById(R.id.text_view_about_sleep_fragment)).setText(mSleep.getAbout());
 
+            final TextView rateTextView = (TextView)v.findViewById(R.id.text_view_rate_sleep_fragment);
+            final RatingBar rateRatingBar = (RatingBar)v.findViewById(R.id.rating_bar_sleep_fragment);
 
+            rateTextView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View pView) {
+                    RateFragment fragment = RateFragment.newInstance(mSleep.getId(), mSleep.getName());
+                    fragment.show(((NavigationDrawerActivity)getActivity()).getSupportFragmentManager(), RateFragment.FRAGMENT_TAG);
+                }
+            });
+
+            rateRatingBar.setOnClickListener(null);
+
+            mRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_AVG_RATES).child(mSleep.getId());
+
+            mValueEventListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot pDataSnapshot) {
+
+                    Double sum = pDataSnapshot.child("sum").getValue(Double.class);
+                    Long num = pDataSnapshot.child("num").getValue(Long.class);
+
+                    if(sum != null && num != null) {
+                        if(num != 0) {
+                            rateTextView.setText(String.format("%.2f", (float) (sum / num)));
+                            rateRatingBar.setRating((float) (sum / num));
+                        } else{
+                            rateTextView.setText("Rate");
+                            rateRatingBar.setRating(0f);
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError pDatabaseError) {
+
+                }
+            };
+
+            return v;
         }
 
 
@@ -170,34 +198,17 @@ public class SleepFragment extends DialogFragment {
         return v;
     }
 
-    private void setTransition(int pT){
-        switch (pT){
-            case 0:
-                mSliderShow.setPresetTransformer(SliderLayout.Transformer.ZoomOut);
-                break;
-            case 1:
-                mSliderShow.setPresetTransformer(SliderLayout.Transformer.Stack);
-                break;
-            case 2:
-                mSliderShow.setPresetTransformer(SliderLayout.Transformer.Background2Foreground);
-                break;
-            case 3:
-                mSliderShow.setPresetTransformer(SliderLayout.Transformer.Foreground2Background);
-                break;
-        }
-    }
-
     @Override
     public void onStart() {
         super.onStart();
-        mSliderShow.addOnPageChangeListener(mOnPageChangeListener);
+        mRef.addValueEventListener(mValueEventListener);
         mSliderShow.startAutoCycle();
     }
 
     @Override
     public void onStop() {
         mSliderShow.stopAutoCycle();
-        mSliderShow.removeOnPageChangeListener(mOnPageChangeListener);
+        mRef.removeEventListener(mValueEventListener);
         super.onStop();
     }
 

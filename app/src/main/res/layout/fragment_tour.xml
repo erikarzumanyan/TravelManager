@@ -2,10 +2,10 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#ffffff">
+    android:background="#ffffff"
+    android:orientation="vertical">
 
     <com.nirhart.parallaxscroll.views.ParallaxScrollView
         android:id="@+id/parallax_scroll_view_fragment_tour"
@@ -18,97 +18,97 @@
         >
 
         <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-
-    <com.daimajia.slider.library.SliderLayout
-        android:id="@+id/slider_tour_fragment"
-        android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:layout_weight="10"
-        android:paddingBottom="@dimen/padding"/>
-
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:weightSum="4"
-        android:paddingLeft="@dimen/padding"
-        android:paddingStart="@dimen/padding"
-        android:paddingRight="@dimen/padding"
-        android:paddingEnd="@dimen/padding"
-        android:gravity="center_vertical">
-
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="3">
-
-            <TextView
-                android:id="@+id/text_view_name_tour_fragment"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="#CF000000"
-                android:textStyle="bold"
-                android:textSize="28sp"
-                android:text="Title"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="Medium Text"
-                android:id="@+id/text_view_tour_price_tour_fragment"/>
-
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@android:color/darker_gray"
-        android:paddingTop="1dp"/>
-
-
-
-        <TextView
-            android:id="@+id/text_view_about_tour_fragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="10dp"
-            android:textSize="20sp"
-            android:text="about"/>
+            android:orientation="vertical">
+
+
+            <com.daimajia.slider.library.SliderLayout
+                android:id="@+id/slider_tour_fragment"
+                android:layout_width="match_parent"
+                android:layout_height="500dp"
+                android:layout_weight="10"
+                android:paddingBottom="@dimen/padding"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingEnd="@dimen/padding"
+                android:paddingLeft="@dimen/padding"
+                android:paddingRight="@dimen/padding"
+                android:paddingStart="@dimen/padding"
+                android:weightSum="4">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/text_view_name_tour_fragment"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Title"
+                        android:textColor="#CF000000"
+                        android:textSize="28sp"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:id="@+id/text_view_tour_price_tour_fragment"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Medium Text"
+                        android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@android:color/darker_gray"
+                android:paddingTop="1dp"/>
+
+
+            <TextView
+                android:id="@+id/text_view_about_tour_fragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="10dp"
+                android:text="about"
+                android:textSize="20sp"
+                android:padding="@dimen/padding"/>
 
         </LinearLayout>
     </com.nirhart.parallaxscroll.views.ParallaxScrollView>
 
     <LinearLayout
-        android:orientation="horizontal"
         android:id="@+id/linear"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true">
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal">
 
         <Button
+            android:id="@+id/button_call"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Call"
             android:background="@color/colorPrimary"
-            android:id="@+id/button_call"/>
+            android:text="Call"/>
 
         <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginLeft="2dp"
-            android:text="Facebook"
-            android:background="@color/colorPrimary"
             android:id="@+id/button_facebook"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="2dp"
+            android:layout_weight="1"
+            android:background="@color/colorPrimary"
+            android:text="Facebook"
             />
     </LinearLayout>
 
