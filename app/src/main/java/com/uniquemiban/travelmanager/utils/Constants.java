@@ -25,5 +25,6 @@ public class Constants {
     public static final double RADIUS = 3000;
 
     public static final String OWM_API_KEY = "9a73fe1cc6cd3cc10dddc1cf44a8c7e0";
-    public static final String GOOGLE_MATRIX_API_KEY = "AIzaSyAdxU1PLJYd8BVZTEss3B1K-B8-vy_Iijg";
+    public static final String GOOGLE_MATRIX_API_KEY = "AIzaSyBdtlRviBL80nIH0LFemeULtpVJ7sl1rlY";
+    public static final String GOOGLE_MATRIX_API_KEY_1 = "AIzaSyAdxU1PLJYd8BVZTEss3B1K-B8-vy_Iijg";
 }

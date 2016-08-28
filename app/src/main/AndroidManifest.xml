@@ -12,7 +12,7 @@
         android:name=".AppController"
         android:allowBackup="true"
         android:fullBackupContent="false"
-        android:icon="@drawable/baggage"
+        android:icon="@mipmap/ic_logo"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
