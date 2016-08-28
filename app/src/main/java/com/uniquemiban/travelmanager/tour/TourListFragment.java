@@ -119,16 +119,16 @@ public class TourListFragment extends Fragment {
 
         mTourList = new ArrayList<>();
 
-        RealmResults<Tour> results = null;
-        if(mName != null)
-            results = mRealm.where(Tour.class).equalTo("mName", mName).findAll();
-        else
-            results = mRealm.where(Tour.class).findAll();
-
-
-        for (Tour tour : results) {
-            mTourList.add(tour);
-        }
+//        RealmResults<Tour> results = null;
+//        if(mName != null)
+//            results = mRealm.where(Tour.class).equalTo("mName", mName).findAll();
+//        else
+//            results = mRealm.where(Tour.class).findAll();
+//
+//
+//        for (Tour tour : results) {
+//            mTourList.add(tour);
+//        }
 
         mChildEventListener = new ChildEventListener() {
             @Override
@@ -253,13 +253,25 @@ public class TourListFragment extends Fragment {
 
         toolbar.setTitle("Tour");
 
-        bar.setDisplayHomeAsUpEnabled(false);
-        bar.setDisplayShowCustomEnabled(true);
+        if(mName == null) {
+            bar.setDisplayHomeAsUpEnabled(false);
+            bar.setDisplayShowCustomEnabled(true);
 
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                activity, activity.getDrawer(), toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        activity.getDrawer().setDrawerListener(toggle);
-        toggle.syncState();
+            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                    activity, activity.getDrawer(), toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+            activity.getDrawer().setDrawerListener(toggle);
+            toggle.syncState();
+        } else{
+            bar.setDisplayShowCustomEnabled(false);
+            bar.setDisplayHomeAsUpEnabled(true);
+
+            toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View pView) {
+                    activity.onBackPressed();
+                }
+            });
+        }
 
         mTourRecyclerView = (RecyclerView) view.findViewById(R.id.fragment_tours_list_recycler_view);
         mTourRecyclerView.setItemAnimator(new RecyclerView.ItemAnimator() {
@@ -417,11 +429,14 @@ public class TourListFragment extends Fragment {
     public void searchItemsByPrice() {
         RealmQuery<Tour> realmQuery = null;
 
+        realmQuery = mRealm.where(Tour.class);
+
+        if(mName != null)
+            realmQuery = realmQuery.equalTo("mName", mName);
+
         if(mSearch != null){
-            realmQuery = mRealm.where(Tour.class).contains("mName", mSearch, Case.INSENSITIVE);
+            realmQuery = realmQuery.or().contains("mName", mSearch, Case.INSENSITIVE);
             realmQuery = realmQuery.or().contains("mTourOperatorName", mSearch, Case.INSENSITIVE);
-        } else {
-            realmQuery = mRealm.where(Tour.class);
         }
 
         SharedPreferences prefs = getActivity().getSharedPreferences(MoneyFilterFragment.SHARED_PREFS_MONEY, Context.MODE_PRIVATE);

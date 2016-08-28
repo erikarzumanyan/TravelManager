@@ -211,12 +211,11 @@ public class GmapFragment extends Fragment implements OnMapReadyCallback, Direct
             return;
         }
         mMap.setMyLocationEnabled(true);
-
     }
 
 
     public void moveCamera() {
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destination, 10));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destination, 40));
     }
 
     @Override

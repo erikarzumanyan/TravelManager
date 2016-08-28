@@ -2,12 +2,14 @@ package com.uniquemiban.travelmanager.start;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -18,6 +20,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
@@ -50,15 +53,23 @@ import com.uniquemiban.travelmanager.R;
 import com.uniquemiban.travelmanager.login.LoginActivity;
 import com.uniquemiban.travelmanager.sight.SightsListFragment;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class NavigationDrawerActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
+    final private int REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS = 124;
     private DrawerLayout mDrawer;
     private Toolbar mToolbar;
     private int mWidth = 500;
 
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
+
+    private Menu mNavMenu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +89,8 @@ public class NavigationDrawerActivity extends AppCompatActivity
 
         mWidth = Math.min(width, height);
 
+        requestPermissions();
+
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
                     .addConnectionCallbacks(this)
@@ -87,6 +100,16 @@ public class NavigationDrawerActivity extends AppCompatActivity
         }
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        mNavMenu  = ((NavigationView)findViewById(R.id.nav_view)).getMenu();
+
+        if(user != null) {
+            mNavMenu.findItem(R.id.nav_sign_in).setVisible(false);
+            mNavMenu.findItem(R.id.nav_sign_out).setVisible(true);
+        } else {
+            mNavMenu.findItem(R.id.nav_sign_in).setVisible(true);
+            mNavMenu.findItem(R.id.nav_sign_out).setVisible(false);
+        }
 
         if (user == null
                 && !getSharedPreferences(Constants.SHARED_PREFS, MODE_PRIVATE).getBoolean(LoginActivity.SHARED_SKIP, false)) {
@@ -295,7 +318,7 @@ public class NavigationDrawerActivity extends AppCompatActivity
             Fragment fragment = manager.findFragmentByTag(GmapMainFragment.FRAGMENT_TAG);
 
             if (fragment == null) {
-                fragment =new GmapMainFragment();
+                fragment = new GmapMainFragment();
                 manager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 manager.beginTransaction()
                         .replace(R.id.fragment_container, fragment, GmapMainFragment.FRAGMENT_TAG)
@@ -305,6 +328,7 @@ public class NavigationDrawerActivity extends AppCompatActivity
 
 
         }  else if (id == R.id.nav_sign_in) {
+
             View header = ((NavigationView) findViewById(R.id.nav_view)).getHeaderView(0);
             header.findViewById(R.id.image_view_profile_pic_nav_header).setVisibility(View.VISIBLE);
 
@@ -312,6 +336,9 @@ public class NavigationDrawerActivity extends AppCompatActivity
             startActivity(new Intent(this, LoginActivity.class));
             finish();
         } else if (id == R.id.nav_sign_out) {
+            mNavMenu.findItem(R.id.nav_sign_in).setVisible(true);
+            mNavMenu.findItem(R.id.nav_sign_out).setVisible(false);
+
             String photoUrl = getSharedPreferences(Constants.FIREBASE_USERS, MODE_PRIVATE).getString(LoginActivity.SHARED_PHOTO_URL, "");
             if(photoUrl != null)
                 Picasso.with(this).invalidate(photoUrl);
@@ -327,6 +354,8 @@ public class NavigationDrawerActivity extends AppCompatActivity
 
             ((TextView) header.findViewById(R.id.text_view_user_name_nav_header)).setText("");
             ((TextView) header.findViewById(R.id.text_view_email_nav_header)).setText("");
+
+            Toast.makeText(this, "Successfully signed out", Toast.LENGTH_LONG).show();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -360,5 +389,100 @@ public class NavigationDrawerActivity extends AppCompatActivity
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult pConnectionResult) {
 
+    }
+
+    private void requestPermissions() {
+        List<String> permissionsNeeded = new ArrayList<String>();
+
+        final List<String> permissionsList = new ArrayList<String>();
+        if (!addPermission(permissionsList, Manifest.permission.ACCESS_FINE_LOCATION))
+            permissionsNeeded.add("GPS");
+        if (!addPermission(permissionsList, Manifest.permission.ACCESS_COARSE_LOCATION))
+            permissionsNeeded.add("Network Location");
+        if (!addPermission(permissionsList, Manifest.permission.READ_EXTERNAL_STORAGE))
+            permissionsNeeded.add("Read External Storage");
+        if (!addPermission(permissionsList, Manifest.permission.CALL_PHONE))
+            permissionsNeeded.add("Call");
+
+        if (permissionsList.size() > 0) {
+            if (Build.VERSION.SDK_INT >= 23) {
+                if (permissionsNeeded.size() > 0) {
+                    // Need Rationale
+                    String message = "You need to grant access to " + permissionsNeeded.get(0);
+                    for (int i = 1; i < permissionsNeeded.size(); i++)
+                        message = message + ", " + permissionsNeeded.get(i);
+                    showMessageOKCancel(message,
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    if (Build.VERSION.SDK_INT >= 23) {
+                                        requestPermissions(permissionsList.toArray(new String[permissionsList.size()]),
+                                                REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS);
+                                    }
+                                }
+                            });
+                    return;
+                }
+                requestPermissions(permissionsList.toArray(new String[permissionsList.size()]),
+                        REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS);
+                return;
+            }
+        }
+
+
+    }
+
+    private boolean addPermission(List<String> permissionsList, String permission) {
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+                permissionsList.add(permission);
+                // Check for Rationale Option
+                if (!shouldShowRequestPermissionRationale(permission))
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS:
+            {
+                Map<String, Integer> perms = new HashMap<String, Integer>();
+                // Initial
+                perms.put(Manifest.permission.ACCESS_COARSE_LOCATION, PackageManager.PERMISSION_GRANTED);
+                perms.put(Manifest.permission.ACCESS_FINE_LOCATION, PackageManager.PERMISSION_GRANTED);
+                perms.put(Manifest.permission.CALL_PHONE, PackageManager.PERMISSION_GRANTED);
+                perms.put(Manifest.permission.READ_EXTERNAL_STORAGE, PackageManager.PERMISSION_GRANTED);
+                // Fill with results
+                for (int i = 0; i < permissions.length; i++)
+                    perms.put(permissions[i], grantResults[i]);
+                // Check for ACCESS_FINE_LOCATION
+                if (perms.get(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                        && perms.get(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                        && perms.get(Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED
+                        && perms.get(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                    // All Permissions Granted
+
+                } else {
+                    // Permission Denied
+                    Toast.makeText(this, "Some Permission is Denied", Toast.LENGTH_SHORT)
+                            .show();
+                }
+            }
+            break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
+    private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
+        new AlertDialog.Builder(this)
+                .setMessage(message)
+                .setPositiveButton("OK", okListener)
+                .setNegativeButton("Cancel", null)
+                .create()
+                .show();
     }
 }

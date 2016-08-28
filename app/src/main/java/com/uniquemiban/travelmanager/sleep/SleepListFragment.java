@@ -505,6 +505,7 @@ public class SleepListFragment extends Fragment{
         public ImageView mPhotoImageView;
         public TextView mNameTextView;
         public TextView mLocationTextView;
+        public TextView mCategoryTextView;
 
         public SleepHolder(View itemView) {
             super(itemView);
@@ -514,6 +515,8 @@ public class SleepListFragment extends Fragment{
 
             mNameTextView = (TextView) itemView.findViewById(R.id.text_view_name_sleep);
             mLocationTextView = (TextView) itemView.findViewById(R.id.text_view_location);
+
+            mCategoryTextView = (TextView) itemView.findViewById(R.id.text_view_category);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -544,6 +547,8 @@ public class SleepListFragment extends Fragment{
                 mNameTextView.setText(mSleep.getName());
             if (mSleep.getLocation() != null)
                 mLocationTextView.setText("Location: " + mSleep.getLocation());
+            if (mSleep.getCategory() != null)
+                mCategoryTextView.setText(mSleep.getCategory());
 
             Picasso.with(getActivity().getApplicationContext())
                     .load(mSleep.getPhotoUrl())

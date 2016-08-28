@@ -526,6 +526,7 @@ public class EatListFragment extends Fragment {
         public ImageView mPhotoImageView;
         public TextView mNameTextView;
         public TextView mLocationTextView;
+        public TextView mCategoryTextView;
 
         public EatHolder(View itemView) {
             super(itemView);
@@ -535,6 +536,8 @@ public class EatListFragment extends Fragment {
 
             mNameTextView = (TextView) itemView.findViewById(R.id.text_view_eat);
             mLocationTextView = (TextView) itemView.findViewById(R.id.text_view_location_eat);
+
+            mCategoryTextView = (TextView) itemView.findViewById(R.id.text_view_category);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -565,6 +568,8 @@ public class EatListFragment extends Fragment {
                 mNameTextView.setText(mEat.getName());
             if (mEat.getLocation() != null)
                 mLocationTextView.setText("Location: " + mEat.getLocation());
+            if (mEat.getCategory() != null)
+                mCategoryTextView.setText(mEat.getCategory());
 
             Picasso.with(getActivity().getApplicationContext())
                     .load(mEat.getPhotoUrl())

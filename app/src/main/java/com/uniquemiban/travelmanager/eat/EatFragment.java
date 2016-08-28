@@ -18,19 +18,27 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.daimajia.slider.library.SliderLayout;
 import com.daimajia.slider.library.SliderTypes.BaseSliderView;
 import com.daimajia.slider.library.SliderTypes.TextSliderView;
 import com.daimajia.slider.library.Tricks.ViewPagerEx;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.nirhart.parallaxscroll.views.ParallaxScrollView;
 import com.squareup.picasso.Picasso;
 import com.uniquemiban.travelmanager.R;
 import com.uniquemiban.travelmanager.map.GmapFragment;
 import com.uniquemiban.travelmanager.models.Eat;
 import com.uniquemiban.travelmanager.models.Sight;
+import com.uniquemiban.travelmanager.rate.RateFragment;
 import com.uniquemiban.travelmanager.start.NavigationDrawerActivity;
+import com.uniquemiban.travelmanager.utils.Constants;
 
 
 import java.util.ArrayList;
@@ -47,10 +55,11 @@ public class EatFragment extends DialogFragment {
     private Eat mEat;
 
     private SliderLayout mSliderShow;
-    private Random mRandom;
-    private ViewPagerEx.OnPageChangeListener mOnPageChangeListener;
 
     private int mDown, mUp, mDist = 5;
+
+    DatabaseReference mRef;
+    ValueEventListener mValueEventListener;
 
     public static EatFragment newInstance(String pId){
      EatFragment fragment = new EatFragment();
@@ -63,23 +72,7 @@ public class EatFragment extends DialogFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mRandom = new Random();
-        mOnPageChangeListener = new ViewPagerEx.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
-            }
-
-            @Override
-            public void onPageSelected(int position) {
-                setTransition(mRandom.nextInt(4));
-            }
-
-            @Override
-            public void onPageScrollStateChanged(int state) {
-                setTransition(mRandom.nextInt(4));
-            }
-        };
         String id = getArguments().getString(KEY_ID);
         mEat = Realm.getDefaultInstance().where(Eat.class).equalTo("mId", id).findFirst();
     }
@@ -150,8 +143,7 @@ public class EatFragment extends DialogFragment {
                 mSliderShow.setDuration(5000);
                 mSliderShow.setSliderTransformDuration(2000, null);
                 mSliderShow.addSlider(textSliderView);
-
-                setTransition(mRandom.nextInt(4));
+                mSliderShow.setPresetTransformer(SliderLayout.Transformer.Stack);
             }
 
             ((TextView)v.findViewById(R.id.text_view_name_eat_fragment)).setText(mEat.getName());
@@ -161,37 +153,59 @@ public class EatFragment extends DialogFragment {
 
         }
 
-        return v;
-    }
+        final TextView rateTextView = (TextView)v.findViewById(R.id.text_view_rate_eat_fragment);
+        final RatingBar rateRatingBar = (RatingBar)v.findViewById(R.id.rating_bar_eat_fragment);
 
-    private void setTransition(int pT){
-        switch (pT){
-            case 0:
-                mSliderShow.setPresetTransformer(SliderLayout.Transformer.ZoomOut);
-                break;
-            case 1:
-                mSliderShow.setPresetTransformer(SliderLayout.Transformer.Stack);
-                break;
-            case 2:
-                mSliderShow.setPresetTransformer(SliderLayout.Transformer.Background2Foreground);
-                break;
-            case 3:
-                mSliderShow.setPresetTransformer(SliderLayout.Transformer.Foreground2Background);
-                break;
-        }
+        rateTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View pView) {
+                RateFragment fragment = RateFragment.newInstance(mEat.getId(), mEat.getName());
+                fragment.show(((NavigationDrawerActivity)getActivity()).getSupportFragmentManager(), RateFragment.FRAGMENT_TAG);
+            }
+        });
+
+        rateRatingBar.setOnClickListener(null);
+
+        mRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_AVG_RATES).child(mEat.getId());
+
+        mValueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot pDataSnapshot) {
+
+                Double sum = pDataSnapshot.child("sum").getValue(Double.class);
+                Long num = pDataSnapshot.child("num").getValue(Long.class);
+
+                if(sum != null && num != null) {
+                    if(num != 0) {
+                        rateTextView.setText(String.format("%.2f", (float) (sum / num)));
+                        rateRatingBar.setRating((float) (sum / num));
+                    } else{
+                        rateTextView.setText("Rate");
+                        rateRatingBar.setRating(0f);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError pDatabaseError) {
+
+            }
+        };
+
+        return v;
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        mSliderShow.addOnPageChangeListener(mOnPageChangeListener);
+        mRef.addValueEventListener(mValueEventListener);
         mSliderShow.startAutoCycle();
     }
 
     @Override
     public void onStop() {
         mSliderShow.stopAutoCycle();
-        mSliderShow.removeOnPageChangeListener(mOnPageChangeListener);
+        mRef.removeEventListener(mValueEventListener);
         super.onStop();
     }
 

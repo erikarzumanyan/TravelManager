@@ -21,33 +21,53 @@
             android:layout_height="500dp"
             android:paddingBottom="@dimen/padding"/>
 
-        <TextView
-            android:id="@+id/text_view_name_eat_fragment"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="#CF000000"
-            android:textStyle="bold"
-            android:textSize="28sp"
-            android:text="Title"
-            android:paddingLeft="@dimen/padding"
-            android:paddingStart="@dimen/padding"
-            android:paddingRight="@dimen/padding"
+            android:layout_height="80dp"
             android:paddingEnd="@dimen/padding"
-            android:paddingTop="@dimen/padding"
-            tools:ignore="HardcodedText"/>
+            android:paddingLeft="@dimen/padding"
+            android:paddingRight="@dimen/padding"
+            android:paddingStart="@dimen/padding"
+            android:paddingBottom="@dimen/padding">
 
-        <TextView
-            android:id="@+id/text_view_category_eat_fragment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="23sp"
-            android:text="Category"
-            android:paddingLeft="@dimen/padding"
-            android:paddingStart="@dimen/padding"
-            android:paddingRight="@dimen/padding"
-            android:paddingEnd="@dimen/padding"
-            android:paddingTop="@dimen/padding"
-            tools:ignore="HardcodedText"/>
+            <TextView
+                android:id="@+id/text_view_name_eat_fragment"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Title"
+                android:textColor="#CF000000"
+                android:textSize="28sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/text_view_category_eat_fragment"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Category"
+                android:textSize="23sp"
+                android:layout_alignParentBottom="true"/>
+
+
+            <TextView
+                android:id="@+id/text_view_rate_eat_fragment"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:textSize="30sp"
+                android:text="0.0"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"/>
+
+            <RatingBar
+                android:id="@+id/rating_bar_eat_fragment"
+                style="?android:attr/ratingBarStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentBottom="true"/>
+
+        </RelativeLayout>
 
         <TextView
             android:id="@+id/text_view_about_eat_fragment"

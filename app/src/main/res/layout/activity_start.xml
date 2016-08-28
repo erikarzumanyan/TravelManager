@@ -14,16 +14,6 @@
         android:layout_gravity="center_horizontal"
         android:id="@+id/imageView2"
         android:src="@drawable/baggage"
-    />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="TRAVELER"
-        android:id="@+id/textView5"
-        android:textSize="60sp"
-    />
+        android:layout_margin="20dp"/>
 
 </LinearLayout>
