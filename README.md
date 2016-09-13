@@ -1,10 +1,10 @@
-# TravelManager
+# intravel
 
 This project is for travelers. It allows the users to search for the sights within the chosen radius. If needed, it shows nearest restaurants, accommodations and existing tours for certain sights.
 
 # Screens
 
-![alt tag](https://drive.google.com/open?id=0B49Ksv_UzsNcLWdpNUxuU3lRTWs )
+![alt tag](https://pp.vk.me/c630118/v630118368/58c22/rH-wkEJ_Ls0.jpg )
 
 ![alt tag](https://drive.google.com/open?id=0B49Ksv_UzsNcNFJtVlZzTVFmV3M )
 
